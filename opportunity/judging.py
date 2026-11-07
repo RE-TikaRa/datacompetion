@@ -161,7 +161,7 @@ def judge_one_batch(client: ModelClient, records: list[dict], labels: dict) -> d
 def judge_batch(
     cleaning_run: Path,
     root: Path = ROOT,
-    batch_size: int = 8,
+    batch_size: int = 16,
     limit: int | None = None,
     resume: Path | None = None,
 ) -> Path:
@@ -219,6 +219,7 @@ def judge_batch(
         return output
     pending = [index for index in range(len(batches)) if index not in completed]
     client = ModelClient(settings)
+    failures = []
     try:
         with ThreadPoolExecutor(max_workers=settings.concurrency) as executor:
             futures = {
@@ -227,7 +228,15 @@ def judge_batch(
             }
             for future in as_completed(futures):
                 index = futures[future]
-                result = future.result()
+                try:
+                    result = future.result()
+                except Exception as error:
+                    failures.append((index, error))
+                    print(
+                        f"判别批次 {index + 1}/{len(batches)} 失败：{error}",
+                        flush=True,
+                    )
+                    continue
                 write_json(checkpoint_folder / f"{index + 1:04d}.json", result)
                 completed[index] = result
                 print(
@@ -238,6 +247,10 @@ def judge_batch(
                 )
     finally:
         client.close()
+    if failures:
+        raise RuntimeError(
+            f"{len(failures)} 个批次失败，其余检查点已保存，可恢复后重试。"
+        )
     results = [completed[index] for index in range(len(batches))]
     items = [item for result in results for item in result["items"]]
     items.sort(key=lambda item: item["record_id"])

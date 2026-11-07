@@ -19,10 +19,10 @@ is_opportunity = observable_demand
 
 ## 批量与恢复
 
-默认每批 8 条，最多并行数由 `MODEL_CONCURRENCY` 控制。每个成功响应保存为一个 JSON 检查点。请求中断后可传入同一判别运行目录恢复，程序会比较清洗输入哈希、模型与批次配置，只重跑缺失的批次。
+默认每批 16 条，最多并行数由 `MODEL_CONCURRENCY` 控制，当前默认 3。每个成功响应保存为一个 JSON 检查点。请求中断后可传入同一判别运行目录恢复，程序会比较清洗输入哈希、模型与批次配置，只重跑缺失的批次。
 
 ```powershell
-uv run python -m opportunity judge --run results/B01/<清洗运行时间> --limit 8
+uv run python -m opportunity judge --run results/B01/<清洗运行时间> --limit 16
 uv run python scripts/audit_judgements.py --run results/B01/<判别运行时间>
 uv run python -m opportunity judge --run results/B01/<清洗运行时间> --resume results/B01/<判别运行时间>
 ```
@@ -31,6 +31,6 @@ uv run python -m opportunity judge --run results/B01/<清洗运行时间> --resu
 
 ## 试运行
 
-已使用 2 条记录测试 JSON Schema，又用 5 个来源各取一条内容进行了跨来源试运行。5 条调用返回 4,706 输入 token、1,272 输出 token，耗时约 72 秒。服务单价未配置，费用未知。
+已使用 2 条记录测试 JSON Schema，又用 5 个来源各取一条内容进行了跨来源试运行。5 条调用返回 4,706 输入 token、1,272 输出 token，耗时约 72 秒。试运行中的产品介绍、新闻和讨论经四项条件分别输出判定，试用记录全部为非机会。服务单价未配置，费用未知。
 
 这些调用只检查结构、规则和证据，不作为人工标签或最终结果。B01 全量判别和人工抽样评价尚未执行。
