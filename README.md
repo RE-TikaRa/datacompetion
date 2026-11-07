@@ -47,6 +47,8 @@ templates/results/          官方四份空 CSV 模板
 uv sync --locked
 uv run python -m opportunity collect --batch B02 --direction "农业 AI 应用" --keywords 农业 种植 农机
 uv run python -m opportunity clean --batch B02
+uv run python -m opportunity judge --run results/B02/<清洗运行时间> --limit 8
+uv run python scripts/audit_judgements.py --run results/B02/<判别运行时间>
 uv run python scripts/audit_data.py --batch B02
 uv run python scripts/audit_cleaning.py --run results/B02/<运行时间>
 ```
@@ -69,6 +71,7 @@ ruff check --fix
 - [数据目录和字段说明](data/README.md)
 - [B01 数据采集报告](reports/DATA_COLLECTION_B01.md)
 - [B01 清洗报告](reports/DATA_CLEANING_B01.md)
+- [任务二判别方法](reports/JUDGING_METHOD.md)
 - [实施进展记录](reports/PROGRESS_REPORT.md)
 - [AI 辅助工作记录](docs/AI_USAGE.md)
 

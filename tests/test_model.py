@@ -31,6 +31,7 @@ def test_codex_configuration_reads_key_without_copying(tmp_path, monkeypatch):
     assert settings.api_key.get_secret_value() == "test-secret"
     assert "test-secret" not in repr(settings)
     assert "test-secret" not in json.dumps(settings.public())
+    assert settings.public()["base_url"] == "https://example.test/v1"
     assert not (tmp_path / ".env").exists()
 
 

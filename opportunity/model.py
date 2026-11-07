@@ -64,6 +64,7 @@ class ModelSettings:
 
     def public(self) -> dict:
         return {
+            "base_url": self.base_url,
             "model": self.model,
             "auth_source": self.auth_source,
             "concurrency": self.concurrency,
