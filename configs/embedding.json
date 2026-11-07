@@ -6,7 +6,7 @@
   "max_tokens": 512,
   "batch_size": 12,
   "dimensions": 384,
-  "prefix": "query: ",
+  "prefix": "passage: ",
   "pooling": "attention_mask_mean",
   "normalization": "l2",
   "license": "MIT"
