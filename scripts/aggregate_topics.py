@@ -11,16 +11,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from opportunity.files import (
     ROOT,
     new_run,
+    read_json,
     read_jsonl,
     write_csv,
     write_json,
 )
-from opportunity.topics import cluster_topics, score_topics
+from opportunity.topics import cluster_topics, score_sensitivity, score_topics
 
 parser = argparse.ArgumentParser(description="聚合候选机会并生成候选 result3/result4。")
 parser.add_argument("--cleaning-run", required=True, type=Path)
 parser.add_argument("--judgement-run", required=True, type=Path)
 parser.add_argument("--min-cluster-size", type=int, default=5)
+parser.add_argument("--judgement-file", type=Path)
+parser.add_argument("--formal", action="store_true")
 args = parser.parse_args()
 cast(TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8")
 cleaning_run = (
@@ -40,13 +43,27 @@ if not cleaning_run.is_relative_to(
 if args.min_cluster_size < 2:
     parser.error("min-cluster-size 至少为 2。")
 
+judgement_file = args.judgement_file
+if judgement_file is None:
+    judgement_file = judgement_run / "judgements.jsonl"
+elif not judgement_file.is_absolute():
+    judgement_file = judgement_run / judgement_file
+judgement_file = judgement_file.resolve()
+if not judgement_file.is_relative_to(ROOT / "results") or not judgement_file.exists():
+    parser.error("judgement-file 必须位于项目 results 目录内。")
+judgement_rows = read_jsonl(judgement_file)
+if args.formal:
+    final_review = judgement_file.parent / "final_review.json"
+    if (
+        not final_review.exists()
+        or read_json(final_review).get("model_labels_not_reviewed", 1) != 0
+    ):
+        parser.error("正式模式要求全量人工复核完成。")
 topics, quality = cluster_topics(
-    cleaning_run, judgement_run, ROOT, args.min_cluster_size
+    cleaning_run, judgement_run, ROOT, args.min_cluster_size, judgement_rows
 )
 cleaned = {row["record_id"]: row for row in read_jsonl(cleaning_run / "records.jsonl")}
-judged = {
-    row["record_id"]: row for row in read_jsonl(judgement_run / "judgements.jsonl")
-}
+judged = {row["record_id"]: row for row in judgement_rows}
 topics, scoring = score_topics(topics, cleaned, judged)
 output = new_run(cleaned[next(iter(cleaned))]["batch_id"])
 
@@ -89,7 +106,7 @@ write_json(
     output / "topics.json",
     {
         "batch_id": topics[0]["batch_id"] if topics else None,
-        "status": "候选结果，基于待复核模型机会标签",
+        "status": "正式结果" if args.formal else "候选结果，基于待复核模型机会标签",
         "cleaning_run": cleaning_run.relative_to(ROOT).as_posix(),
         "judgement_run": judgement_run.relative_to(ROOT).as_posix(),
         "quality": quality,
@@ -100,7 +117,7 @@ write_json(
     output / "scoring.json",
     {
         "batch_id": topics[0]["batch_id"] if topics else None,
-        "status": "候选结果，待人工复核",
+        "status": "正式结果" if args.formal else "候选结果，待人工复核",
         "scoring": scoring,
         "ranking": [
             {
@@ -110,6 +127,7 @@ write_json(
             }
             for topic in topics
         ],
+        "sensitivity": score_sensitivity(topics),
     },
 )
 print(

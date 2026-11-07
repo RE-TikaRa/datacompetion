@@ -4,6 +4,9 @@ const state = {
   labels: { functions: [], industries: [] },
   selected: "",
   filter: "all",
+  view: "review",
+  auth: "",
+  role: "reviewer",
 };
 
 const get = id => document.getElementById(id);
@@ -16,10 +19,24 @@ const node = (tag, text = "", className = "") => {
 };
 
 async function api(path, options) {
-  const response = await fetch(path, options);
+  const headers = new Headers(options?.headers || {});
+  if (state.auth) headers.set("Authorization", `Basic ${state.auth}`);
+  const response = await fetch(path, { ...options, headers });
   const data = await response.json();
   if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
   return data;
+}
+
+function encodeBasic(username, password) {
+  const bytes = new TextEncoder().encode(`${username}:${password}`);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+function showLogin(error = "") {
+  get("login-error").textContent = error;
+  get("login-dialog").showModal();
 }
 
 async function loadRuns() {
@@ -31,7 +48,14 @@ async function loadRuns() {
     option.value = run.run_id;
     select.append(option);
   }
-  if (runs.length) await loadRun(runs[0].run_id);
+  if (runs.length) {
+    if (state.role === "decision-maker") {
+      state.runId = runs[0].run_id;
+      await showDecisionView();
+    } else {
+      await loadRun(runs[0].run_id);
+    }
+  }
 }
 
 async function loadRun(runId) {
@@ -39,10 +63,90 @@ async function loadRun(runId) {
   state.runId = runId;
   state.rows = data.rows;
   state.labels = data.labels;
+  const identity = await api("/api/me");
+  state.role = identity.role;
+  for (const button of document.querySelectorAll("[data-view]")) {
+    button.hidden =
+      (state.role === "reviewer" && button.dataset.view === "decision") ||
+      (state.role === "decision-maker" && button.dataset.view === "review");
+    button.classList.toggle("active", button.dataset.view === "review");
+  }
+  state.view = "review";
+  for (const button of document.querySelectorAll("[data-view]")) {
+    button.classList.toggle("active", button.dataset.view === "review");
+  }
   get("summary").textContent =
     `${data.summary.reviewed_records || 0} / ${data.summary.review_records} 已复核`;
   renderRows();
   if (state.selected) await showRecord(state.selected);
+}
+
+async function showDecisionView() {
+  if (state.role !== "decision-maker") {
+    showLogin("方向优先级仅对决策者账号开放。");
+    return;
+  }
+  const data = await api(`/api/decision/${encodeURIComponent(state.runId)}`);
+  state.view = "decision";
+  for (const button of document.querySelectorAll("[data-view]")) {
+    button.classList.toggle("active", button.dataset.view === "decision");
+  }
+  const panel = get("detail");
+  panel.replaceChildren();
+  panel.append(node("h2", "主题优先级"));
+  panel.append(node("p", data.status, "review-pending"));
+  if (data.review) {
+    panel.append(node(
+      "p",
+      `复核进度：${data.review.reviewed_records || 0} / ${data.review.review_records} 条`,
+      "meta",
+    ));
+  }
+  if (!data.topics) {
+    panel.append(node("p", "当前运行没有主题评分。", "empty-state"));
+    return;
+  }
+  const table = node("table", "", "topic-table");
+  const head = node("thead");
+  const heading = node("tr");
+  for (const text of ["优先级", "主题", "功能", "行业", "记录数", "来源", "价值分"]) {
+    heading.append(node("th", text));
+  }
+  head.append(heading);
+  table.append(head);
+  const body = node("tbody");
+  for (const topic of data.topics) {
+    const row = node("tr");
+    for (const value of [
+      topic.priority ?? "候选",
+      topic.topic_name,
+      topic.functional_category,
+      topic.industry,
+      topic.record_count,
+      topic.source_names.join("、"),
+      topic.value_score,
+    ]) {
+      const cell = node("td", String(value));
+      if (typeof value === "number" && value > 10) cell.classList.add("score");
+      row.append(cell);
+    }
+    row.addEventListener("click", () => {
+      panel.querySelectorAll("tbody tr").forEach(item => item.classList.remove("selected"));
+      row.classList.add("selected");
+      const detail = node("section", "", "section");
+      detail.append(node("h3", `${topic.topic_id} · 维度评分`));
+      for (const [key, score] of Object.entries(topic.dimension_scores)) {
+        detail.append(node("p", `${key}：${score === null ? "无数据" : Number(score).toFixed(2)}`));
+      }
+      const old = panel.querySelector(".topic-dimensions");
+      old?.remove();
+      detail.classList.add("topic-dimensions");
+      panel.append(detail);
+    });
+    body.append(row);
+  }
+  table.append(body);
+  panel.append(table);
 }
 
 function matches(row) {
@@ -220,8 +324,54 @@ async function saveReview(recordId) {
   }
 }
 
-get("run").addEventListener("change", () => loadRun(get("run").value));
+get("run").addEventListener("change", async () => {
+  if (state.role === "decision-maker") {
+    state.runId = get("run").value;
+    await showDecisionView();
+  } else {
+    await loadRun(get("run").value);
+  }
+});
+get("login-toggle").addEventListener("click", () => showLogin());
+get("cancel-login").addEventListener("click", () => get("login-dialog").close());
+get("login-form").addEventListener("submit", async event => {
+  event.preventDefault();
+  state.auth = encodeBasic(get("username").value, get("password").value);
+  try {
+    const runs = await api("/api/runs");
+    const identity = await api("/api/me");
+    state.role = identity.role;
+    get("login-dialog").close();
+    for (const button of document.querySelectorAll("[data-view]")) {
+      button.hidden =
+        (state.role === "reviewer" && button.dataset.view === "decision") ||
+        (state.role === "decision-maker" && button.dataset.view === "review");
+    }
+    if (runs.length) {
+      state.runId = runs[0].run_id;
+      if (state.role === "decision-maker") await showDecisionView();
+      else await loadRun(runs[0].run_id);
+    }
+  } catch (error) {
+    state.auth = "";
+    showLogin(error.message);
+  }
+});
 get("search").addEventListener("input", renderRows);
+for (const button of document.querySelectorAll("[data-view]")) {
+  button.addEventListener("click", async () => {
+    if (button.dataset.view === "decision") {
+      await showDecisionView();
+    } else {
+      state.view = "review";
+      for (const other of document.querySelectorAll("[data-view]")) {
+        other.classList.toggle("active", other === button);
+      }
+      renderRows();
+      if (state.selected) await showRecord(state.selected);
+    }
+  });
+}
 for (const button of document.querySelectorAll("[data-filter]")) {
   button.addEventListener("click", () => {
     state.filter = button.dataset.filter;
@@ -231,6 +381,4 @@ for (const button of document.querySelectorAll("[data-filter]")) {
     renderRows();
   });
 }
-loadRuns().catch(error => {
-  get("detail").textContent = error.message;
-});
+loadRuns().catch(error => showLogin(error.message));

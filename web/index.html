@@ -15,6 +15,11 @@
       <select id="run" aria-label="选择判别运行"></select>
     </label>
     <div class="summary" id="summary"></div>
+    <nav class="view-switch" aria-label="工作视图">
+      <button class="view active" data-view="review">人工复核</button>
+      <button class="view" data-view="decision">方向优先级</button>
+    </nav>
+    <button id="login-toggle" class="login-toggle">账号</button>
   </header>
   <main class="workspace">
     <section class="queue-panel" aria-label="复核队列">
@@ -40,6 +45,18 @@
       <p class="empty-state">选择队列记录查看正文、来源证据和模型判断。</p>
     </section>
   </main>
+  <dialog id="login-dialog">
+    <form id="login-form">
+      <h2>本地账号</h2>
+      <label>账号<input id="username" autocomplete="username" required></label>
+      <label>密码<input id="password" type="password" autocomplete="current-password" required></label>
+      <p id="login-error" class="form-error"></p>
+      <div class="dialog-actions">
+        <button type="button" id="cancel-login">取消</button>
+        <button type="submit" class="save-button">登录</button>
+      </div>
+    </form>
+  </dialog>
   <script type="module" src="/assets/review.js"></script>
 </body>
 </html>

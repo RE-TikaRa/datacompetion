@@ -1,10 +1,14 @@
 import csv
+import hmac
 import json
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -33,6 +37,8 @@ REVIEW_COLUMNS = [
     "人工所属行业",
     "人工备注",
 ]
+HTTP_BASIC = HTTPBasic(auto_error=False)
+AUTH_DEPENDENCY = Depends(HTTP_BASIC)
 
 
 class ReviewUpdate(BaseModel):
@@ -115,27 +121,91 @@ def _labels(root: Path) -> dict:
     return read_json(root / "data/reference/labels.json")
 
 
+def _role(request: Request, credentials: HTTPBasicCredentials | None) -> str:
+    reviewer_username = os.getenv("REVIEWER_USERNAME", "")
+    reviewer_password = os.getenv("REVIEWER_PASSWORD", "")
+    decision_username = os.getenv("DECISION_MAKER_USERNAME", "")
+    decision_password = os.getenv("DECISION_MAKER_PASSWORD", "")
+    if reviewer_password or decision_password:
+        if credentials is not None:
+            username = credentials.username.encode("utf-8")
+            password = credentials.password.encode("utf-8")
+            if (
+                reviewer_password
+                and hmac.compare_digest(username, reviewer_username.encode("utf-8"))
+                and hmac.compare_digest(password, reviewer_password.encode("utf-8"))
+            ):
+                return "reviewer"
+            if (
+                decision_password
+                and hmac.compare_digest(username, decision_username.encode("utf-8"))
+                and hmac.compare_digest(password, decision_password.encode("utf-8"))
+            ):
+                return "decision-maker"
+        raise HTTPException(
+            status_code=401,
+            detail="账号或密码错误。",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    if request.client and request.client.host in {"127.0.0.1", "::1", "testclient"}:
+        return "reviewer"
+    raise HTTPException(status_code=403, detail="请配置本地复核员或决策者账号。")
+
+
 def create_app(root: Path = ROOT) -> FastAPI:
+    load_dotenv(root / ".env", override=False)
     app = FastAPI(title="AI 应用机会评估系统", docs_url="/api/docs")
     app.mount("/assets", StaticFiles(directory=WEB_ROOT), name="assets")
 
     @app.get("/api/runs")
-    def runs() -> list[dict]:
+    def runs(
+        request: Request,
+        credentials: HTTPBasicCredentials | None = AUTH_DEPENDENCY,
+    ) -> list[dict]:
+        _role(request, credentials)
         output = []
         for path in sorted((root / "results").glob("*/**/review/review_summary.json")):
             summary = read_json(path)
-            output.append({"run_id": path.parent.parent.name, **summary})
+            run = path.parent.parent.resolve()
+            output.append(
+                {"run_id": run.relative_to(root / "results").as_posix(), **summary}
+            )
         return output
 
+    @app.get("/api/me")
+    def current_user(
+        request: Request,
+        credentials: HTTPBasicCredentials | None = AUTH_DEPENDENCY,
+    ) -> dict:
+        role = _role(request, credentials)
+        return {"role": role}
+
     @app.get("/api/review/{run_id:path}")
-    def review(run_id: str) -> dict:
+    def review(
+        run_id: str,
+        request: Request,
+        credentials: HTTPBasicCredentials | None = AUTH_DEPENDENCY,
+    ) -> dict:
+        if _role(request, credentials) != "reviewer":
+            raise HTTPException(
+                status_code=403, detail="决策者账号不能查看逐条正文和复核记录。"
+            )
         run = _run_path(root, run_id)
         rows = _load_review(run)
         summary = read_json(run / "review" / "review_summary.json")
         return {"summary": summary, "labels": _labels(root), "rows": rows}
 
     @app.get("/api/review/{run_id:path}/{record_id}")
-    def review_record(run_id: str, record_id: str) -> dict:
+    def review_record(
+        run_id: str,
+        record_id: str,
+        request: Request,
+        credentials: HTTPBasicCredentials | None = AUTH_DEPENDENCY,
+    ) -> dict:
+        if _role(request, credentials) != "reviewer":
+            raise HTTPException(
+                status_code=403, detail="决策者账号不能查看逐条正文和复核记录。"
+            )
         run = _run_path(root, run_id)
         rows = _load_review(run)
         item = next((row for row in rows if row["record_id"] == record_id), None)
@@ -147,7 +217,17 @@ def create_app(root: Path = ROOT) -> FastAPI:
         return {"item": item, "text": text_path.read_text(encoding="utf-8")}
 
     @app.post("/api/review/{run_id:path}/{record_id}")
-    def update_review(run_id: str, record_id: str, update: ReviewUpdate) -> dict:
+    def update_review(
+        run_id: str,
+        record_id: str,
+        update: ReviewUpdate,
+        request: Request,
+        credentials: HTTPBasicCredentials | None = AUTH_DEPENDENCY,
+    ) -> dict:
+        if _role(request, credentials) != "reviewer":
+            raise HTTPException(
+                status_code=403, detail="决策者账号不能修改人工复核记录。"
+            )
         run = _run_path(root, run_id)
         rows = _load_review(run)
         item = next((row for row in rows if row["record_id"] == record_id), None)
@@ -174,6 +254,76 @@ def create_app(root: Path = ROOT) -> FastAPI:
         )
         _save_review(run, rows)
         return {"record_id": record_id, "review_status": item["review_status"]}
+
+    @app.get("/api/decision/{run_id:path}")
+    def decision_view(
+        run_id: str,
+        request: Request,
+        credentials: HTTPBasicCredentials | None = AUTH_DEPENDENCY,
+    ) -> dict:
+        if _role(request, credentials) != "decision-maker":
+            raise HTTPException(status_code=403, detail="此视图仅对决策者账号开放。")
+        run = _run_path(root, run_id)
+        result = {
+            "run_id": run_id,
+            "status": "暂无主题分析",
+            "topics": None,
+            "scoring": None,
+            "review": None,
+        }
+        topic_paths = sorted(run.parent.glob("*/topics.json"), reverse=True)
+        if (run / "topics.json").exists():
+            topic_paths.insert(0, run / "topics.json")
+        for topic_path in topic_paths:
+            data = read_json(topic_path)
+            scoring = read_json(topic_path.with_name("scoring.json"))
+            ranked = {row["topic_id"]: row for row in scoring.get("ranking", [])}
+            topics = []
+            for topic in data.get("topics", []):
+                rank = ranked.get(topic["topic_id"], {})
+                topics.append(
+                    {
+                        key: topic[key]
+                        for key in [
+                            "topic_id",
+                            "topic_name",
+                            "functional_category",
+                            "industry",
+                            "record_count",
+                            "source_names",
+                            "source_count",
+                            "dimension_scores",
+                        ]
+                        if key in topic
+                    }
+                    | {
+                        key: rank[key]
+                        for key in ["value_score", "priority"]
+                        if key in rank
+                    }
+                )
+            result.update(
+                status=data["status"],
+                topics=topics,
+                scoring={
+                    "weights": scoring.get("scoring", {}).get("weights"),
+                    "sensitivity": scoring.get("sensitivity"),
+                },
+            )
+            break
+        review_summary = run / "review" / "review_summary.json"
+        if review_summary.exists():
+            summary = read_json(review_summary)
+            result["review"] = {
+                key: summary.get(key)
+                for key in [
+                    "review_records",
+                    "reviewed_records",
+                    "pending_records",
+                    "review_status",
+                ]
+            }
+        return result
 
     @app.get("/", response_class=FileResponse)
     def index() -> FileResponse:
