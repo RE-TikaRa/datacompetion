@@ -223,6 +223,95 @@ def judge_one_batch(client: ModelClient, records: list[dict], labels: dict) -> d
     raise RuntimeError(f"批量判别失败：{last_error}")
 
 
+def merge_batch_results(parts: list[dict]) -> dict:
+    usage_rows = [part["usage"] for part in parts]
+    cost_known = all(row["cost"] is not None for row in usage_rows)
+    return {
+        "record_ids": [record_id for part in parts for record_id in part["record_ids"]],
+        "items": [item for part in parts for item in part["items"]],
+        "usage": {
+            "response_ids": [
+                response_id
+                for row in usage_rows
+                for response_id in row.get("response_ids", [row.get("response_id")])
+                if response_id
+            ],
+            "model": usage_rows[0]["model"],
+            "elapsed_seconds": sum(row["elapsed_seconds"] for row in usage_rows),
+            "input_tokens": sum(row["input_tokens"] for row in usage_rows),
+            "output_tokens": sum(row["output_tokens"] for row in usage_rows),
+            "cached_input_tokens": sum(
+                row["cached_input_tokens"] for row in usage_rows
+            ),
+            "cost": sum(row["cost"] for row in usage_rows) if cost_known else None,
+            "cost_basis": usage_rows[0]["cost_basis"],
+        },
+        "evidence_repairs": [
+            repair for part in parts for repair in part["evidence_repairs"]
+        ],
+        "sub_batches": len(parts),
+    }
+
+
+def judge_partition(
+    client: ModelClient,
+    records: list[dict],
+    labels: dict,
+    checkpoint_folder: Path,
+    key: str,
+) -> dict:
+    checkpoint = checkpoint_folder / f"{key}.json"
+    if checkpoint.exists():
+        return read_json(checkpoint)
+    try:
+        if len(records) <= 4:
+            result = judge_one_batch(client, records, labels)
+        else:
+            midpoint = len(records) // 2
+            result = merge_batch_results(
+                [
+                    judge_partition(
+                        client,
+                        records[:midpoint],
+                        labels,
+                        checkpoint_folder,
+                        key + "a",
+                    ),
+                    judge_partition(
+                        client,
+                        records[midpoint:],
+                        labels,
+                        checkpoint_folder,
+                        key + "b",
+                    ),
+                ]
+            )
+    except Exception:
+        if len(records) <= 1:
+            raise
+        midpoint = len(records) // 2
+        result = merge_batch_results(
+            [
+                judge_partition(
+                    client,
+                    records[:midpoint],
+                    labels,
+                    checkpoint_folder,
+                    key + "a",
+                ),
+                judge_partition(
+                    client,
+                    records[midpoint:],
+                    labels,
+                    checkpoint_folder,
+                    key + "b",
+                ),
+            ]
+        )
+    write_json(checkpoint, result)
+    return result
+
+
 def judge_batch(
     cleaning_run: Path,
     root: Path = ROOT,
@@ -291,7 +380,14 @@ def judge_batch(
     try:
         with ThreadPoolExecutor(max_workers=settings.concurrency) as executor:
             futures = {
-                executor.submit(judge_one_batch, client, batches[index], labels): index
+                executor.submit(
+                    judge_partition,
+                    client,
+                    batches[index],
+                    labels,
+                    checkpoint_folder,
+                    f"{index + 1:04d}",
+                ): index
                 for index in pending
             }
             for future in as_completed(futures):
@@ -305,7 +401,6 @@ def judge_batch(
                         flush=True,
                     )
                     continue
-                write_json(checkpoint_folder / f"{index + 1:04d}.json", result)
                 completed[index] = result
                 print(
                     f"判别批次 {index + 1}/{len(batches)} 已保存，"
