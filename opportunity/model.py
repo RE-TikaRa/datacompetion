@@ -22,6 +22,7 @@ class ModelSettings:
     concurrency: int = 3
     input_price: float | None = None
     output_price: float | None = None
+    timeout_seconds: float = 420
 
     @classmethod
     def load(cls, root: Path = ROOT) -> ModelSettings:
@@ -52,6 +53,7 @@ class ModelSettings:
             )
         input_price = os.getenv("MODEL_INPUT_PRICE_PER_MILLION", "")
         output_price = os.getenv("MODEL_OUTPUT_PRICE_PER_MILLION", "")
+        timeout_seconds = float(os.getenv("MODEL_TIMEOUT_SECONDS", "420"))
         return cls(
             base_url.rstrip("/"),
             model,
@@ -60,6 +62,7 @@ class ModelSettings:
             int(os.getenv("MODEL_CONCURRENCY", "3")),
             float(input_price) if input_price else None,
             float(output_price) if output_price else None,
+            timeout_seconds,
         )
 
     def public(self) -> dict:
@@ -70,6 +73,7 @@ class ModelSettings:
             "concurrency": self.concurrency,
             "input_price_per_million": self.input_price,
             "output_price_per_million": self.output_price,
+            "timeout_seconds": self.timeout_seconds,
         }
 
 
@@ -81,7 +85,7 @@ class ModelClient:
             headers={
                 "Authorization": "Bearer " + self.settings.api_key.get_secret_value()
             },
-            timeout=180,
+            timeout=self.settings.timeout_seconds,
         )
 
     def generate[T: BaseModel](
@@ -92,24 +96,29 @@ class ModelClient:
         output_tokens: int = 8000,
     ) -> tuple[T, dict[str, Any]]:
         started = time.monotonic()
-        response = self.client.post(
-            "responses",
-            json={
-                "model": self.settings.model,
-                "instructions": instructions,
-                "input": content,
-                "store": False,
-                "max_output_tokens": output_tokens,
-                "text": {
-                    "format": {
-                        "type": "json_schema",
-                        "name": schema.__name__,
-                        "schema": schema.model_json_schema(),
-                        "strict": True,
-                    }
+        try:
+            response = self.client.post(
+                "responses",
+                json={
+                    "model": self.settings.model,
+                    "instructions": instructions,
+                    "input": content,
+                    "store": False,
+                    "max_output_tokens": output_tokens,
+                    "text": {
+                        "format": {
+                            "type": "json_schema",
+                            "name": schema.__name__,
+                            "schema": schema.model_json_schema(),
+                            "strict": True,
+                        }
+                    },
                 },
-            },
-        )
+            )
+        except httpx.TimeoutException as error:
+            raise RuntimeError("模型请求超时。") from error
+        except httpx.HTTPError as error:
+            raise RuntimeError("模型网络请求失败。") from error
         if not response.is_success:
             raise RuntimeError(f"模型请求失败，HTTP {response.status_code}。")
         result = response.json()

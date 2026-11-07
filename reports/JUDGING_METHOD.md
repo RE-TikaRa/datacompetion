@@ -19,7 +19,7 @@ is_opportunity = observable_demand
 
 ## 批量与恢复
 
-默认每批 16 条，最多并行数由 `MODEL_CONCURRENCY` 控制，当前默认 3。每个成功响应保存为一个 JSON 检查点。请求中断后可传入同一判别运行目录恢复，程序会比较清洗输入哈希、模型与批次配置，只重跑缺失的批次。
+默认每批 16 条，最多并行数由 `MODEL_CONCURRENCY` 控制，默认 3。B01 全量任务共 161 批，模型读取超时为 420 秒。每个成功响应保存为 JSON 检查点；单批网络或输出错误最多请求三次，其他成功结果仍会保存。恢复时程序比较清洗输入哈希、模型和批次配置，只重跑缺失批次。
 
 ```powershell
 uv run python -m opportunity judge --run results/B01/<清洗运行时间> --limit 16

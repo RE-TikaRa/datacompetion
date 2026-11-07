@@ -208,11 +208,15 @@ def judge_one_batch(client: ModelClient, records: list[dict], labels: dict) -> d
                 "evidence_repairs": evidence_repairs,
                 "attempt": attempt,
             }
-        except (RuntimeError, ValueError) as error:
+        except RuntimeError as error:
+            last_error = error
+            if attempt < 3:
+                time.sleep(attempt)
+        except ValueError as error:
             last_error = error
             if attempt < 3:
                 prompt += (
-                    f"\n\n上次校验未通过：{error}。"
+                    f"\n\n上次结构或规则校验未通过：{error}。"
                     "请修正结果，只返回原文逐字摘录的证据。"
                 )
                 time.sleep(attempt)
@@ -264,7 +268,10 @@ def judge_batch(
     }
     job_path = output / "job.json"
     if job_path.exists():
-        if read_json(job_path) != config:
+        stored_config = read_json(job_path)
+        legacy_config = {**config, "model": dict(config["model"])}
+        legacy_config["model"].pop("timeout_seconds", None)
+        if stored_config != config and stored_config != legacy_config:
             raise ValueError("恢复任务的输入数据、批量大小或模型配置与运行清单不同。")
     else:
         write_json(job_path, config)

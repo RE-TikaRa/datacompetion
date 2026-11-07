@@ -18,6 +18,8 @@ uv run python scripts/check_model.py
 
 `MODEL_CONCURRENCY` 控制并行请求数，默认 3。任务保存每次调用的用量、耗时及服务返回的模型标识，文本只来自用户选择的公开数据。
 
+`MODEL_TIMEOUT_SECONDS` 默认 420 秒。长文本批次可能需要较长生成时间，超时批次会自动重试并保留其他已完成检查点。
+
 ## 多语言语义模型
 
 `configs/embedding.json` 指定 `intfloat/multilingual-e5-small` 的固定版本、ONNX 文件、分词、池化和归一化方式。模型按 MIT 许可提供，原模型说明一并保存。
