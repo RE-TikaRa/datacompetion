@@ -1,0 +1,69 @@
+{
+  "direction": "综合 AI 应用机会，覆盖多个行业",
+  "reference_date": "2026-11-07",
+  "lookback_days": 90,
+  "relevance_pattern": "(?i)\\b(?:AI|LLM|RAG|GPT|ChatGPT|Claude|Gemini|DeepSeek|Qwen|Copilot|Chatbot|OpenAI)\\b|人工智能|大模型|智能体|生成式|机器学习|计算机视觉|自然语言处理|语音识别|图像识别|智能客服|检索增强",
+  "sources": [
+    {
+      "id": "github",
+      "name": "GitHub",
+      "kind": "github",
+      "interval_seconds": 7,
+      "readme_limit": 25,
+      "policies": [
+        "https://github.com/robots.txt",
+        "https://docs.github.com/en/rest/search/search",
+        "https://docs.github.com/en/site-policy/github-terms/github-terms-of-service"
+      ],
+      "queries": [
+        {"id": "repositories-ai", "endpoint": "repositories", "q": "AI in:name,description stars:>=20 fork:false archived:false", "max_pages": 2},
+        {"id": "repositories-agent", "endpoint": "repositories", "q": "agent in:name,description stars:>=20 fork:false archived:false", "max_pages": 1},
+        {"id": "repositories-rag", "endpoint": "repositories", "q": "RAG in:name,description stars:>=20 fork:false archived:false", "max_pages": 1},
+        {"id": "issues-ai", "endpoint": "issues", "q": "AI is:issue comments:>=2", "max_pages": 2},
+        {"id": "issues-llm", "endpoint": "issues", "q": "LLM is:issue comments:>=2", "max_pages": 2},
+        {"id": "issues-agent", "endpoint": "issues", "q": "\"AI agent\" is:issue comments:>=1", "max_pages": 1}
+      ]
+    },
+    {
+      "id": "hackernews",
+      "name": "Hacker News",
+      "kind": "hackernews",
+      "interval_seconds": 0.6,
+      "policies": ["https://hn.algolia.com/api"],
+      "queries": [
+        {"id": "ask-ai", "q": "AI", "tags": "ask_hn", "max_pages": 5},
+        {"id": "ask-llm", "q": "LLM", "tags": "ask_hn", "max_pages": 3},
+        {"id": "ask-automation", "q": "automation", "tags": "ask_hn", "max_pages": 2},
+        {"id": "show-ai", "q": "AI", "tags": "show_hn", "max_pages": 4},
+        {"id": "show-agent", "q": "agent", "tags": "show_hn", "max_pages": 2},
+        {"id": "stories-rag", "q": "RAG", "tags": "story", "max_pages": 2},
+        {"id": "comments-ai", "q": "AI", "tags": "comment", "max_pages": 3}
+      ]
+    },
+    {
+      "id": "qbitai",
+      "name": "量子位",
+      "kind": "wordpress",
+      "endpoint": "https://www.qbitai.com/wp-json/wp/v2/posts",
+      "interval_seconds": 1.2,
+      "max_pages": 50,
+      "policies": ["https://www.qbitai.com/robots.txt", "https://www.qbitai.com/", "https://www.qbitai.com/wp-json/"]
+    },
+    {
+      "id": "ithome",
+      "name": "IT之家",
+      "kind": "feed",
+      "interval_seconds": 1.2,
+      "feeds": ["https://www.ithome.com/rss/"],
+      "policies": ["https://www.ithome.com/robots.txt", "https://www.ithome.com/"]
+    },
+    {
+      "id": "v2ex",
+      "name": "V2EX",
+      "kind": "feed",
+      "interval_seconds": 1.2,
+      "feeds": ["https://www.v2ex.com/feed/tab/tech.xml", "https://www.v2ex.com/index.xml"],
+      "policies": ["https://www.v2ex.com/robots.txt", "https://www.v2ex.com/about", "https://www.v2ex.com/help/api"]
+    }
+  ]
+}

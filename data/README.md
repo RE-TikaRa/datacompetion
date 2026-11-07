@@ -1,0 +1,59 @@
+# 数据说明
+
+## 目录
+
+| 路径 | 内容 |
+| --- | --- |
+| `reference/附件1.xlsx` | 官方功能类别与行业标签 |
+| `reference/附件2.xlsx` | 官方参考数据源清单 |
+| `reference/labels.json` | 从附件 1 提取的 16 个功能类别与 30 个行业 |
+| `reference/reference_sources.json` | 从附件 2 提取的 20 个参考网站 |
+| `reference/web_policies/` | 采集时保存的 robots、接口与条款页面文本，`index.json` 保存地址和获取时间 |
+| `raw/<批次号>/collection_config.json` | 该批次需求、检索条件与实际时间范围 |
+| `raw/<批次号>/<来源>/<请求编号>.json` | API 或订阅源中用于分析的字段与正文，个人账号资料不保存 |
+| `raw/<批次号>/<来源>/requests.json` | 请求地址、时间、状态、响应头、分页范围和错误 |
+| `raw/<批次号>/manifest.json` | 批次统计、来源状态、采集环境和处理范围 |
+| `processed/<批次号>/records.jsonl` | 每行一条统一记录，包含正文位置与原始记录位置 |
+| `processed/<批次号>/records.csv` | 适合 Excel 查看和筛选的统一记录索引 |
+| `processed/<批次号>/text/` | 以 `B01_S00001.md` 方式命名的正文快照 |
+
+`raw` 保存从响应中选取并经过隐私处理的来源字段，不是完整 HTTP 响应字节副本。原文可通过来源链接核验，处理后的文本可通过请求编号和原始记录位置追溯。
+
+## 统一记录字段
+
+| 字段 | 含义 |
+| --- | --- |
+| `batch_id`、`record_id` | 批次和批次内连续编号 |
+| `source_id`、`source_name` | 来源标识及名称 |
+| `native_id`、`source_url` | 平台记录标识与公开链接 |
+| `title` | 记录标题 |
+| `published_at`、`updated_at`、`collected_at` | 发布时间、平台更新时间及获取时间；缺失值保留 `null` |
+| `record_kind` | 项目、Issue、需求主题、产品展示、评论或文章 |
+| `content_kind` | `readme`、`description`、`body`、`feed_body` 或 `title_only` |
+| `content_path`、`content_characters` | 清洗正文路径及字符数 |
+| `metrics` | 平台提供的星标、讨论数、投票等原始数值 |
+| `query_ids`、`request_ids` | 命中的检索条件和获取请求 |
+| `raw_response_paths` | 对应原始字段文件，路径以项目根目录为基准 |
+| `license` | 接口公开的许可证标识；未提供时为 `null` |
+
+索引中的 `content_path` 和 CSV“内容”列使用项目根目录相对路径。打包最终结果时，需要按导出目录重新计算路径，并同时携带正文快照。
+
+## 内容与质量
+
+采集过程中不保存作者档案、账号资料、头像或评论者身份字段。文本处理隐去可识别格式的邮箱、电话号码、IP 和用户提及；该处理无法识别所有自然语言个人信息，正式导出前仍需要检查具体正文。
+
+清洗包括 HTML 转正文、URL 移除和空白规范化。相同来源链接合并，多次检索命中的请求编号一并保存。相近语义、同一事件转载和跨站重复需要单独分析，不能将所有讨论相似问题的记录合并，否则会损失真实的独立需求证据。
+
+`title_only` 只有标题，`description` 只有项目简介，不能视作完整正文。教程、产品介绍、新闻和宣传内容可进入相关记录集，是否构成机会由后续判别决定。
+
+热度保留各平台提供的原始单位。缺失值保持缺失，GitHub 星标不能与 Hacker News 投票直接相加。采集排序、分页上限、来源间样本量差异和时间覆盖会影响热点统计，分析时需要报告这些偏差。
+
+## 检查
+
+```powershell
+py scripts/audit_data.py --batch B01
+```
+
+检查记录数、连续编号、时间窗、来源链接唯一性、正文文件、CSV/JSONL 对应关系和原始记录关联。输出还包括短文本、缺少热度指标及完全相同正文的数量。
+
+同一批次文件不覆盖。再次调用采集时使用新的批次号，并保留对应配置与清单。

@@ -1,0 +1,11 @@
+__pycache__/
+.ruff_cache/
+.serena/
+.venv/
+.env
+.env.*
+!.env.example
+
+data/raw/
+data/processed/
+data/reference/web_policies/
