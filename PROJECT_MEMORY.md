@@ -24,20 +24,22 @@ GitHub 和 Hacker News 为有限检索样本，RSS 仅有当前入口提供的�
 
 B01 Issue 搜索遇到 98～99 条的短页时结束，已经在报告披露。后续脚本以总数和空页判断结束。现有批次不重新获取、不改写其原始记录。
 
-当前没有机会标签、最终 result1～result4、聚类、价值排序、界面或策划案。数据索引不等于最终任务一结果，近重复、渠道噪声和完整正文需要在分析流程中处理。
+当前没有机会标签、result2～result4、聚类、价值排序、界面或策划案。机会判断和标签还需要实验评价与人工复核。
 
 2026-11-08 已完成 B01 任务一清洗运行：运行目录为 `results/B01/20261107T164112993137Z/`，3,576 次来源字段出现经筛选和去重后保留 2,561 条，生成官方字段 `result1.csv`、2,561 份正文快照、JSONL 关系表和清洗报告；5 组重复映射保留来源与热度关系。审计、Ruff、Pyright 和 8 项测试通过。
 
 ## 运行入口
 
 ```powershell
-py scripts/collect_data.py --batch B02
-py scripts/audit_data.py --batch B01
+uv run python -m opportunity collect --batch B02 --direction "农业 AI 应用" --keywords 农业 种植 农机
+uv run python -m opportunity clean --batch B02
+uv run python scripts/audit_data.py --batch B01
+uv run python scripts/audit_cleaning.py --run results/B01/20261107T164112993137Z
 ruff format
 ruff check --fix
 ```
 
-配置为 `configs/collection.json`。脚本仅用 Python 标准库，未创建项目虚拟环境或安装项目运行依赖。官方标签 JSON 已生成，提取脚本使用独占创建以防覆盖。
+项目依赖由 `pyproject.toml` 和 `uv.lock` 管理。清洗结果位于单独的 `results/<批次>/<运行时间>/` 目录，不改写原始采集数据。
 
 ## 研究与交付约束
 

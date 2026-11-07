@@ -13,9 +13,12 @@
 | `raw/<批次号>/<来源>/<请求编号>.json` | API 或订阅源中用于分析的字段与正文，个人账号资料不保存 |
 | `raw/<批次号>/<来源>/requests.json` | 请求地址、时间、状态、响应头、分页范围和错误 |
 | `raw/<批次号>/manifest.json` | 批次统计、来源状态、采集环境和处理范围 |
-| `processed/<批次号>/records.jsonl` | 每行一条统一记录，包含正文位置与原始记录位置 |
-| `processed/<批次号>/records.csv` | 适合 Excel 查看和筛选的统一记录索引 |
-| `processed/<批次号>/text/` | 以 `B01_S00001.md` 方式命名的正文快照 |
+| `processed/<批次号>/records.jsonl` | 采集阶段的来源记录索引 |
+| `processed/<批次号>/records.csv` | 采集阶段适合 Excel 查看和筛选的索引 |
+| `results/<批次号>/<运行时间>/result1.csv` | 官方字段格式的清洗去重结果 |
+| `results/<批次号>/<运行时间>/records.jsonl` | 清洗记录、合并来源及原始响应关联 |
+| `results/<批次号>/<运行时间>/text/` | 与该次清洗结果对应的正文快照 |
+| `results/<批次号>/<运行时间>/cleaning.json` | 方向筛选、链接归并、去重和质量标记统计 |
 
 `raw` 保存从响应中选取并经过隐私处理的来源字段，不是完整 HTTP 响应字节副本。原文可通过来源链接核验，处理后的文本可通过请求编号和原始记录位置追溯。
 
@@ -35,8 +38,11 @@
 | `query_ids`、`request_ids` | 命中的检索条件和获取请求 |
 | `raw_response_paths` | 对应原始字段文件，路径以项目根目录为基准 |
 | `license` | 接口公开的许可证标识；未提供时为 `null` |
+| `provenance` | 原始链接、平台 ID、请求编号、发布时间、热度和响应路径 |
+| `sources` | 正文重复合并后覆盖的网站名称 |
+| `quality_flags` | 内容不完整、文本过短或热度缺失的提示 |
 
-索引中的 `content_path` 和 CSV“内容”列使用项目根目录相对路径。打包最终结果时，需要按导出目录重新计算路径，并同时携带正文快照。
+清洗运行中的 `content_path` 和 CSV“内容”列相对该次运行目录，交付 `result1.csv` 时需同时携带该运行的 `text/` 快照。
 
 ## 内容与质量
 
@@ -51,9 +57,10 @@
 ## 检查
 
 ```powershell
-py scripts/audit_data.py --batch B01
+uv run python scripts/audit_data.py --batch B01
+uv run python scripts/audit_cleaning.py --run results/B01/<运行时间>
 ```
 
-检查记录数、连续编号、时间窗、来源链接唯一性、正文文件、CSV/JSONL 对应关系和原始记录关联。输出还包括短文本、缺少热度指标及完全相同正文的数量。
+第一个命令检查采集批次。第二个命令检查官方 CSV 列名、编号、正文快照、来源热度和原始响应关系。
 
 同一批次文件不覆盖。再次调用采集时使用新的批次号，并保留对应配置与清单。

@@ -17,7 +17,7 @@
 | 清洗和 result1 | 已完成 | B01 已生成独立运行目录、官方 CSV、正文快照、记录关系和清洗报告 |
 | 机会判断至提交材料 | 未开始完成 | `result2`、`result3`、`result4`、系统界面、评价样本及论文尚未生成 |
 
-当前提交为 `59e8c35 feat: connect analysis to configured model service`。未推送。任务一采集拆分、清洗、向量与测试已完成检查，准备作为下一次本地提交。
+当前提交为 `f3b0eaf feat: add batch cleaning and provenance audit`。未推送。任务一代码和报告已提交，分析输出保留在本地忽略目录。
 
 ## 1. 资料和初始数据
 
@@ -37,6 +37,7 @@ B01 来自有分页上限的公开搜索和当前 RSS，不能代表平台全量
 | `8737bad docs: plan complete competition deliverables` | 全量完成目标、分项完成条件及进度清单 |
 | `59e8c35` | Python 项目环境、依赖锁、本机模型连接及结构化输出 |
 | `0c02a9f` | 进展报告首版 |
+| `f3b0eaf` | 批次清洗、result1、来源追溯审计和向量模型 |
 
 目标和逐项进展在 [plan.md](../plan.md) 与 [todo.md](../todo.md) 维护。每个完整功能及有独立价值的修复通过检查后，已获授权自动创建本地提交；不推送、不切换分支、不删除原资料。
 

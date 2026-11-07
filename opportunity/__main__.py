@@ -1,10 +1,14 @@
 import argparse
 import json
+import sys
+from io import TextIOWrapper
+from typing import cast
 
 from opportunity.cleaning import clean_batch
 from opportunity.collection import collect_batch
 from opportunity.files import ROOT, new_run, read_json
 
+cast(TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8")
 parser = argparse.ArgumentParser(description="AI 应用机会分析系统")
 commands = parser.add_subparsers(dest="command", required=True)
 clean = commands.add_parser("clean", help="从采集快照清洗并导出 result1")

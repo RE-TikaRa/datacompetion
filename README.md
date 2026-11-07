@@ -37,18 +37,23 @@ scripts/                    采集、官方标签提取和数据检查脚本
 templates/results/          官方四份空 CSV 模板
 ```
 
-文件夹内的采集数据与最终比赛结果分别保存。原始模板仅含表头；`data/processed/<批次号>/records.csv` 是数据索引，其处理范围由该批次清单和质量报告说明。
+采集字段和清洗结果分别保存。`data/processed/<批次号>/` 是来源索引，`results/<批次号>/<运行时间>/` 保存清洗结果。每次运行都生成新目录。
 
 ## 数据采集
 
-采集脚本使用 Python 3.13 及以上版本的标准库，无第三方运行依赖。北京时间用于确定日期范围，存储的发布时间统一为带时区的 ISO 8601 时间。
+项目运行使用 Python 3.14 和 `uv.lock` 中的依赖。北京时间用于确定日期范围，存储的发布时间使用带时区的 ISO 8601 格式。
 
 ```powershell
-py scripts/collect_data.py --batch B02
-py scripts/audit_data.py --batch B02
+uv sync --locked
+uv run python -m opportunity collect --batch B02 --direction "农业 AI 应用" --keywords 农业 种植 农机
+uv run python -m opportunity clean --batch B02
+uv run python scripts/audit_data.py --batch B02
+uv run python scripts/audit_cleaning.py --run results/B02/<运行时间>
 ```
 
-采集前编辑 `configs/collection.json` 中的方向、检索词和参考日期。每次使用新的批次号，脚本拒绝覆盖已有批次。`--reference-date YYYY-MM-DD` 可指定另一个参考日期；调用时间早于当日结束时，时间窗截至实际调用时间。
+`--keywords` 指定需求关键词，`--direction` 写入批次说明；只有命中关键词的记录会进入该需求的清洗结果。未指定 `--reference-date` 时按当前北京时间向前检索 90 天。每次采集使用新的批次号，已有批次不会覆盖。
+
+`clean` 从该批次采集字段生成新的独立运行目录，包含官方表头 `result1.csv`、正文快照、来源关联和清洗报告。
 
 ```powershell
 ruff format
@@ -63,6 +68,8 @@ ruff check --fix
 - [数据来源与采集依据](reports/DATA_SOURCES.md)
 - [数据目录和字段说明](data/README.md)
 - [B01 数据采集报告](reports/DATA_COLLECTION_B01.md)
+- [B01 清洗报告](reports/DATA_CLEANING_B01.md)
+- [实施进展记录](reports/PROGRESS_REPORT.md)
 - [AI 辅助工作记录](docs/AI_USAGE.md)
 
 ## 交付要求
