@@ -22,4 +22,8 @@ uv run uvicorn opportunity.web:app --host 127.0.0.1 --port 8000
 uv run python scripts/audit_review_queue.py --review results/B01/<判别运行时间>/review
 ```
 
-复核完成后，再用人工标签生成正式 `result2.csv`。模型候选结果、人工复核结果和最终提交文件保持独立。
+对复核清单的人工结论会覆盖相应模型标签；复核清单之外的记录保留模型判断，并标明“模型标签待复核”。形成的最终 CSV 覆盖全部清洗记录，`final_review.json` 标明人工复核覆盖数量。confidence 仍为模型自评值，未经过概率校准。
+
+```powershell
+uv run python scripts/finalize_review.py --run results/B01/<判别运行时间>
+```

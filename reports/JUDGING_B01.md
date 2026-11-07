@@ -34,7 +34,7 @@ uv run python scripts/build_review_queue.py --run results/B01/20261107T173708748
 uv run python scripts/audit_review_queue.py --review results/B01/20261107T173708748922Z/review
 ```
 
-人工填完结果后，才能计算 Precision、Recall、F1、混淆矩阵和概率校准指标。
+人工填完结果后，可以运行 `scripts/finalize_review.py` 将人工标签覆盖到全量 result2，并计算人工覆盖范围。只有当复核队列全部填完时，才能把全量标签当作最终人工结果并计算 Precision、Recall、F1、混淆矩阵和概率校准指标。
 
 队列位于 `results/B01/20261107T173708748922Z/review/`，共 509 条，包含全部 269 条候选机会及 240 条负例。负例按来源网站和正文类型轮转抽取，同层中优先选择模型置信度较低的记录。人工结果栏保持空白。
 
