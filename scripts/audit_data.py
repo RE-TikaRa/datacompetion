@@ -5,7 +5,9 @@ import re
 import sys
 from collections import Counter
 from datetime import datetime
+from io import TextIOWrapper
 from pathlib import Path
+from typing import cast
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -14,7 +16,7 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("--batch", required=True)
 args = parser.parse_args()
-sys.stdout.reconfigure(encoding="utf-8")
+cast(TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8")
 
 raw_folder = ROOT / "data/raw" / args.batch
 processed_folder = ROOT / "data/processed" / args.batch

@@ -16,8 +16,9 @@ from datetime import UTC, date, datetime, timedelta, timezone
 from datetime import time as day_time
 from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
+from io import TextIOWrapper
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCAL = timezone(timedelta(hours=8))
@@ -89,7 +90,7 @@ class Collector:
         if delay > 0:
             time.sleep(delay)
         request_id = f"{self.source['id']}-{len(self.requests) + 1:04d}"
-        request = {
+        request: dict[str, Any] = {
             "id": request_id,
             "url": url,
             "fetched_at": datetime.now(UTC).isoformat(),
@@ -404,7 +405,7 @@ class Collector:
                 else:
                     link = item.findtext("link")
                     published = parsedate_to_datetime(
-                        item.findtext("pubDate")
+                        item.findtext("pubDate", "")
                     ).isoformat()
                     body = item.findtext("description") or ""
                     title = item.findtext("title") or ""
@@ -467,7 +468,7 @@ args = parser.parse_args()
 if not re.fullmatch(r"B\d{2,}", args.batch):
     parser.error("批次号应为 B 加至少两位数字。")
 
-sys.stdout.reconfigure(encoding="utf-8")
+cast(TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8")
 config = json.loads((ROOT / "configs/collection.json").read_text(encoding="utf-8"))
 reference_date = args.reference_date or date.fromisoformat(config["reference_date"])
 started = datetime.now(UTC)

@@ -26,7 +26,11 @@ def read_sheets(path: Path) -> list[list[list[str]]]:
                     if cell.get("t") == "s":
                         value = strings[int(value)]
                     elif cell.get("t") == "inlineStr":
-                        value = "".join(cell.find("s:is", NS).itertext())
+                        value = "".join(
+                            text
+                            for node in cell.findall("s:is", NS)
+                            for text in node.itertext()
+                        )
                     values.append(value)
                 rows.append(values)
             sheets.append(rows)

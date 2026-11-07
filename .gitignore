@@ -1,5 +1,6 @@
 __pycache__/
 .ruff_cache/
+.pytest_cache/
 .serena/
 .venv/
 .env
@@ -9,3 +10,6 @@ __pycache__/
 data/raw/
 data/processed/
 data/reference/web_policies/
+data/models/
+data/state/
+results/
