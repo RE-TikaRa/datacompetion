@@ -49,6 +49,8 @@ uv run python -m opportunity collect --batch B02 --direction "农业 AI 应用" 
 uv run python -m opportunity clean --batch B02
 uv run python -m opportunity judge --run results/B02/<清洗运行时间> --limit 8
 uv run python scripts/audit_judgements.py --run results/B02/<判别运行时间>
+uv run python scripts/build_review_queue.py --run results/B01/20261107T173708748922Z --negative-sample 240
+uv run python scripts/audit_review_queue.py --review results/B01/20261107T173708748922Z/review
 uv run python scripts/audit_data.py --batch B02
 uv run python scripts/audit_cleaning.py --run results/B02/<运行时间>
 ```

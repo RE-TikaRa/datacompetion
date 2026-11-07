@@ -437,8 +437,10 @@ def judge_batch(
         "功能类别",
         "所属行业",
     ]
-    write_csv(output / csv_name, columns, rows)
-    write_jsonl(output / jsonl_name, items)
+    if not (output / csv_name).exists():
+        write_csv(output / csv_name, columns, rows)
+    if not (output / jsonl_name).exists():
+        write_jsonl(output / jsonl_name, items)
     usage = [result["usage"] for result in results]
     write_json(
         output / "judging.json",
@@ -453,7 +455,7 @@ def judge_batch(
             "batch_size": batch_size,
             "batches": len(results),
             "evidence_repair_count": sum(
-                len(result["evidence_repairs"]) for result in results
+                len(result.get("evidence_repairs", [])) for result in results
             ),
             "model": settings.public(),
             "usage": {
