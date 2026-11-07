@@ -77,6 +77,7 @@ ruff check --fix
 - [B01 机会判别结果](reports/JUDGING_B01.md)
 - [B01 候选主题与评分](reports/TOPICS_CANDIDATE_B01.md)
 - [实施进展记录](reports/PROGRESS_REPORT.md)
+- [人工复核工作台](docs/REVIEW_WORKBENCH.md)
 - [AI 辅助工作记录](docs/AI_USAGE.md)
 
 ## 交付要求

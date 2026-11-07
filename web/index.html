@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>AI 应用机会复核工作台</title>
+  <link rel="stylesheet" href="/assets/review.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>AI 应用机会复核</h1>
+    <label class="run-select">
+      <span>批次</span>
+      <select id="run" aria-label="选择判别运行"></select>
+    </label>
+    <div class="summary" id="summary"></div>
+  </header>
+  <main class="workspace">
+    <section class="queue-panel" aria-label="复核队列">
+      <div class="queue-toolbar">
+        <input id="search" type="search" placeholder="搜索记录、标题、来源">
+        <div class="filters" role="group" aria-label="模型判断筛选">
+          <button class="filter active" data-filter="all">全部</button>
+          <button class="filter" data-filter="positive">候选机会</button>
+          <button class="filter" data-filter="negative">非机会样本</button>
+          <button class="filter" data-filter="pending">待复核</button>
+        </div>
+      </div>
+      <div class="queue-scroll">
+        <table>
+          <thead>
+            <tr><th>编号</th><th>来源和标题</th><th>模型</th><th>复核</th></tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="detail-panel" id="detail" aria-live="polite">
+      <p class="empty-state">选择队列记录查看正文、来源证据和模型判断。</p>
+    </section>
+  </main>
+  <script type="module" src="/assets/review.js"></script>
+</body>
+</html>
