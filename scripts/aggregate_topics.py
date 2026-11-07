@@ -18,7 +18,9 @@ from opportunity.files import (
 )
 from opportunity.topics import cluster_topics, score_sensitivity, score_topics
 
-parser = argparse.ArgumentParser(description="聚合候选机会并生成候选 result3/result4。")
+parser = argparse.ArgumentParser(
+    description="聚合机会主题并生成候选或正式 result3/result4。"
+)
 parser.add_argument("--cleaning-run", required=True, type=Path)
 parser.add_argument("--judgement-run", required=True, type=Path)
 parser.add_argument("--min-cluster-size", type=int, default=5)
@@ -59,6 +61,14 @@ if args.formal:
         or read_json(final_review).get("model_labels_not_reviewed", 1) != 0
     ):
         parser.error("正式模式要求全量人工复核完成。")
+    final_rows = read_jsonl(judgement_file)
+    if len(final_rows) != read_json(final_review)["records"]:
+        parser.error("人工确认文件没有覆盖完整批次。")
+    cleaning_records = read_jsonl(cleaning_run / "records.jsonl")
+    final_ids = [row["record_id"] for row in final_rows]
+    cleaning_ids = {row["record_id"] for row in cleaning_records}
+    if len(final_ids) != len(set(final_ids)) or set(final_ids) != cleaning_ids:
+        parser.error("人工复核结果与清洗批次的记录数不一致。")
 topics, quality = cluster_topics(
     cleaning_run, judgement_run, ROOT, args.min_cluster_size, judgement_rows
 )
@@ -100,15 +110,23 @@ with (ROOT / "templates/results/result4.csv").open(
     encoding="utf-8-sig", newline=""
 ) as stream:
     columns4 = next(csv.reader(stream))
-write_csv(output / "result3.csv", columns3, result3_rows)
-write_csv(output / "result4.csv", columns4, result4_rows)
+result3_name, result4_name = (
+    ("result3.csv", "result4.csv")
+    if args.formal
+    else ("candidate_result3.csv", "candidate_result4.csv")
+)
+write_csv(output / result3_name, columns3, result3_rows)
+write_csv(output / result4_name, columns4, result4_rows)
 write_json(
     output / "topics.json",
     {
         "batch_id": topics[0]["batch_id"] if topics else None,
         "status": "正式结果" if args.formal else "候选结果，基于待复核模型机会标签",
+        "result3": result3_name,
+        "result4": result4_name,
         "cleaning_run": cleaning_run.relative_to(ROOT).as_posix(),
         "judgement_run": judgement_run.relative_to(ROOT).as_posix(),
+        "judgement_file": judgement_file.relative_to(ROOT).as_posix(),
         "quality": quality,
         "topics": topics,
     },
@@ -138,8 +156,10 @@ print(
             "topic_count": len(topics),
             "noise_records": quality["noise_records"],
             "silhouette_score": quality["silhouette_score"],
+            "result3": result3_name,
+            "result4": result4_name,
             "industry_counts": dict(Counter(topic["industry"] for topic in topics)),
-            "review_status": "候选结果，待人工复核",
+            "review_status": ("正式结果" if args.formal else "候选结果，待人工复核"),
         },
         ensure_ascii=False,
         indent=2,

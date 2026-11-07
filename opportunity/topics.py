@@ -5,7 +5,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from scipy.stats import kendalltau
 from sklearn.cluster import HDBSCAN
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -28,6 +28,15 @@ class TopicLabelBatch(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     topics: list[TopicLabel]
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_topics_key(cls, value):
+        if isinstance(value, dict) and "topics" not in value:
+            for key in ("results", "labels", "items"):
+                if key in value:
+                    return {"topics": value[key]}
+        return value
 
 
 def short_title(title: str, limit: int = 48) -> str:
