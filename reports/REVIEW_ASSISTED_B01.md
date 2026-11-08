@@ -84,3 +84,35 @@ uv run python scripts/audit_review_comparison.py --run results/B01/20261107T1737
 ```
 
 真人确认后，才能把确认结果写入原复核队列，导出正式 `result2.csv`，并据此重跑正式主题和价值评分。
+
+## AI 代理裁定与候选结果
+
+根据用户要求，对三方对照中的 328 条分歧、边界或分类冲突记录重新调用模型裁定。181 条稳定模型共识记录保留盲复核结果，合并后形成覆盖 509 条队列的 `assistant_review_proxy`。
+
+裁定模型使用原模型、可见标签辅助复核、盲复核和正文证据作为输入，要求回到正文重新判断，不能按多数票复制。裁定结果位于 `review/assistant_adjudication/`：
+
+- `assistant_adjudication.jsonl/csv`：328 条冲突记录的再次裁定。
+- `assistant_review_proxy.jsonl/csv`：509 条 AI 代理复核结果，包含 `review_basis` 和 `reviewer` 字段。
+- `assistant_adjudication_summary.json`：裁定用量和代理复核汇总。
+
+AI 代理复核给出 100 条机会候选，169 条相对原模型的标签变化。代理结果通过编号、证据、官方分类和覆盖审计，但仍不是人工真值。
+
+这轮裁定另外使用 396,785 个输入 token、55,956 个输出 token 和 29,032 个缓存输入 token，模型累计耗时约 1,410 秒，成本未知。最终 509 条代理复核包含 160 条边界记录；原始 `human_*` 字段仍全部留空。
+
+基于代理复核结果导出的候选文件位于 `review/assistant_adjudication/full_batch_proxy/`：
+
+- `assistant_proxy_result2.csv`：2,561 条全批次结果，其中 509 条采用 AI 代理标签，2,052 条保留未抽样的原模型标签。
+- `assistant_proxy_judgements.jsonl`：主题聚合使用的结构化结果。
+- `assistant_proxy_summary.json`：来源和人工真值状态。
+
+使用代理机会标签重跑的候选主题位于 `results/B01/20261108T043220466135Z/`，输出为 `proxy_result3.csv` 和 `proxy_result4.csv`。100 条代理机会形成 14 个主题，其中 12 个为单记录主题，轮廓系数 0.204。这个结果比原始 269 条模型候选更接近复核后的候选范围，但仍不能作为正式热点或优先级结论。
+
+复现命令：
+
+```powershell
+uv run python scripts/adjudicate_reviews.py --run results/B01/20261107T173708748922Z --batch-size 16
+uv run python scripts/audit_adjudication.py --run results/B01/20261107T173708748922Z
+uv run python scripts/build_proxy_result2.py --run results/B01/20261107T173708748922Z
+uv run python scripts/audit_proxy_result2.py --run results/B01/20261107T173708748922Z
+uv run python scripts/aggregate_topics.py --cleaning-run results/B01/20261107T164112993137Z --judgement-run results/B01/20261107T173708748922Z --judgement-file review/assistant_adjudication/full_batch_proxy/assistant_proxy_judgements.jsonl --label-source assistant-proxy
+```

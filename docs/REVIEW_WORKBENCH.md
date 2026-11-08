@@ -26,6 +26,8 @@ uv run python scripts/audit_review_queue.py --review results/B01/<判别运行�
 
 项目也提供独立的 AI 辅助复核入口。它不会写入 `human_*` 字段，输出位于 `review/assistant_review/`；盲复核输出位于 `review/assistant_review_blind/`，三方对照输出位于 `review/review_comparison_blind/`。其中 `triage.csv` 和 `stable_positive_candidates.csv` 协助查找分歧与稳定候选。AI 辅助结果不能作为真人真值，真人确认仍需在原复核队列中完成。
 
+需要继续运行代理流程时，使用 `review/assistant_adjudication/` 下的裁定和 `full_batch_proxy/assistant_proxy_result2.csv`。代理流程覆盖 509 条复核队列，但未抽样记录仍保留原模型标签；导出文件与正式 `result2.csv` 分开，不能视为人工完成。
+
 对复核清单的人工结论会覆盖相应模型标签；复核清单之外的记录保留模型判断，并标明“模型标签待复核”。形成的最终 CSV 覆盖全部清洗记录，`final_review.json` 标明人工复核覆盖数量。confidence 仍为模型自评值，未经过概率校准。
 
 ```powershell

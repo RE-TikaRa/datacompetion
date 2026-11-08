@@ -26,6 +26,11 @@ parser.add_argument("--judgement-run", required=True, type=Path)
 parser.add_argument("--min-cluster-size", type=int, default=5)
 parser.add_argument("--judgement-file", type=Path)
 parser.add_argument("--formal", action="store_true")
+parser.add_argument(
+    "--label-source",
+    choices=("model", "assistant-proxy", "human"),
+    default="model",
+)
 args = parser.parse_args()
 cast(TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8")
 cleaning_run = (
@@ -44,6 +49,11 @@ if not cleaning_run.is_relative_to(
     parser.error("输入运行目录必须位于项目 results 目录内。")
 if args.min_cluster_size < 2:
     parser.error("min-cluster-size 至少为 2。")
+if args.formal and args.label_source == "assistant-proxy":
+    parser.error("正式模式不能使用 AI 代理标签。")
+if not args.formal and args.label_source == "human":
+    parser.error("human 标签来源只能用于正式模式。")
+label_source = "human" if args.formal else args.label_source
 
 judgement_file = args.judgement_file
 if judgement_file is None:
@@ -76,6 +86,14 @@ cleaned = {row["record_id"]: row for row in read_jsonl(cleaning_run / "records.j
 judged = {row["record_id"]: row for row in judgement_rows}
 topics, scoring = score_topics(topics, cleaned, judged)
 output = new_run(cleaned[next(iter(cleaned))]["batch_id"])
+status_by_source = {
+    "model": "候选结果，基于待复核模型机会标签",
+    "assistant-proxy": "AI代理复核候选结果，待真人确认",
+    "human": "正式结果",
+}
+status = status_by_source[label_source]
+quality["review_status"] = status
+scoring["review_status"] = status
 
 result3_rows = [
     [
@@ -113,7 +131,11 @@ with (ROOT / "templates/results/result4.csv").open(
 result3_name, result4_name = (
     ("result3.csv", "result4.csv")
     if args.formal
-    else ("candidate_result3.csv", "candidate_result4.csv")
+    else (
+        ("proxy_result3.csv", "proxy_result4.csv")
+        if label_source == "assistant-proxy"
+        else ("candidate_result3.csv", "candidate_result4.csv")
+    )
 )
 write_csv(output / result3_name, columns3, result3_rows)
 write_csv(output / result4_name, columns4, result4_rows)
@@ -121,7 +143,8 @@ write_json(
     output / "topics.json",
     {
         "batch_id": topics[0]["batch_id"] if topics else None,
-        "status": "正式结果" if args.formal else "候选结果，基于待复核模型机会标签",
+        "status": status,
+        "label_source": label_source,
         "result3": result3_name,
         "result4": result4_name,
         "cleaning_run": cleaning_run.relative_to(ROOT).as_posix(),
@@ -135,7 +158,8 @@ write_json(
     output / "scoring.json",
     {
         "batch_id": topics[0]["batch_id"] if topics else None,
-        "status": "正式结果" if args.formal else "候选结果，待人工复核",
+        "status": status,
+        "label_source": label_source,
         "scoring": scoring,
         "ranking": [
             {
@@ -159,7 +183,7 @@ print(
             "result3": result3_name,
             "result4": result4_name,
             "industry_counts": dict(Counter(topic["industry"] for topic in topics)),
-            "review_status": ("正式结果" if args.formal else "候选结果，待人工复核"),
+            "review_status": status,
         },
         ensure_ascii=False,
         indent=2,

@@ -61,6 +61,11 @@ uv run python scripts/assistant_review.py --run results/B01/20261107T17370874892
 uv run python scripts/audit_assistant_review.py --run results/B01/20261107T173708748922Z --blind
 uv run python scripts/compare_reviews.py --run results/B01/20261107T173708748922Z
 uv run python scripts/audit_review_comparison.py --run results/B01/20261107T173708748922Z
+uv run python scripts/adjudicate_reviews.py --run results/B01/20261107T173708748922Z --batch-size 16
+uv run python scripts/audit_adjudication.py --run results/B01/20261107T173708748922Z
+uv run python scripts/build_proxy_result2.py --run results/B01/20261107T173708748922Z
+uv run python scripts/audit_proxy_result2.py --run results/B01/20261107T173708748922Z
+uv run python scripts/aggregate_topics.py --cleaning-run results/B01/20261107T164112993137Z --judgement-run results/B01/20261107T173708748922Z --judgement-file review/assistant_adjudication/full_batch_proxy/assistant_proxy_judgements.jsonl --label-source assistant-proxy
 ```
 
 `--keywords` 指定需求关键词，`--direction` 写入批次说明；只有命中关键词的记录会进入该需求的清洗结果。未指定 `--reference-date` 时按当前北京时间向前检索 90 天。每次采集使用新的批次号，已有批次不会覆盖。
