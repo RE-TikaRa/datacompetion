@@ -55,6 +55,8 @@ uv run python scripts/finalize_review.py --run results/B01/20261107T173708748922
 uv run python scripts/audit_data.py --batch B02
 uv run python scripts/audit_cleaning.py --run results/B02/<运行时间>
 uv run python scripts/audit_topics.py --run results/B01/<主题运行时间>
+uv run python scripts/assistant_review.py --run results/B01/20261107T173708748922Z
+uv run python scripts/audit_assistant_review.py --run results/B01/20261107T173708748922Z
 ```
 
 `--keywords` 指定需求关键词，`--direction` 写入批次说明；只有命中关键词的记录会进入该需求的清洗结果。未指定 `--reference-date` 时按当前北京时间向前检索 90 天。每次采集使用新的批次号，已有批次不会覆盖。
@@ -78,6 +80,7 @@ ruff check --fix
 - [任务二判别方法](reports/JUDGING_METHOD.md)
 - [B01 机会判别结果](reports/JUDGING_B01.md)
 - [B01 候选主题与评分](reports/TOPICS_CANDIDATE_B01.md)
+- [B01 AI 辅助复核](reports/REVIEW_ASSISTED_B01.md)
 - [实施进展记录](reports/PROGRESS_REPORT.md)
 - [人工复核工作台](docs/REVIEW_WORKBENCH.md)
 - [AI 辅助工作记录](docs/AI_USAGE.md)
