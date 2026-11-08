@@ -33,6 +33,8 @@
 
 一致率为 `379 / 509 = 74.46%`。这只是两个模型输出之间的一致率，不是准确率。当前没有真人真值，因此不能据此计算真实 Precision、Recall、F1 或概率校准指标。
 
+240 条模型非机会样本按来源网站和正文类型轮转，每个分层内优先抽取模型置信度较低的记录。这是面向不确定样本的定向抽样，不是随机样本；即使完成真人标注，也不能用它无偏估算全部 2,292 条模型非机会中的漏判率或总体召回率。
+
 ## 输出文件
 
 结果保存在 `results/B01/20261107T173708748922Z/review/assistant_review/`：
@@ -46,6 +48,20 @@
 
 原 `review_queue.jsonl`、`review_queue.csv` 中的 `human_*` 字段保持空白，审计结果为 `human_queue_untouched=true`。
 
+盲复核结果保存在同级的 `assistant_review_blind/`，它只接收记录编号、来源、正文类型、标题和正文摘要，不接收原模型判断或第一轮辅助判断。盲复核判断为机会 109 条，边界记录 170 条，按盲复核结果筛出的真人优先查看记录 270 条。
+
+三方对照保存在 `review_comparison_blind/`：
+
+- `consensus.csv`：509 条全量对照，给出原模型、可见标签辅助复核、盲复核和两次辅助复核共识。
+- `triage.csv`：328 条存在判断分歧、边界情况或功能/行业分类分歧的记录。
+- `comparison_summary.json`：三方状态数量和一致率。
+- `stable_positive_candidates.csv`：23 条两轮辅助复核均判机会、功能和行业一致且均未标边界的记录，仅作为真人优先查看的候选。
+- `stability_summary.json`：高稳定候选数量和状态。
+
+两次辅助复核判断一致 419 条，其中共同判断为机会 80 条、共同判断为非机会 339 条；原模型、可见标签辅助复核和盲复核三者同时一致 313 条。可见标签辅助复核与盲复核仍使用同一个模型和同一批正文，只能用于发现对原标签的敏感性，不能形成独立真值。
+
+把两次辅助复核都判为机会、功能和行业完全一致、且两次都没有标记边界的记录再筛选，只有 23 条。这些记录的判断稳定性相对更高，但仍需真人确认。
+
 ## 模型用量
 
 - 输入 token：758,777。
@@ -54,11 +70,17 @@
 - 运行耗时：约 2,595 秒。
 - 成本：未配置服务单价，因此未知。
 
+盲复核另外使用 602,232 个输入 token、84,925 个输出 token 和 119,932 个缓存输入 token，耗时约 1,864 秒，成本同样未知。
+
 复现命令：
 
 ```powershell
 uv run python scripts/assistant_review.py --run results/B01/20261107T173708748922Z
 uv run python scripts/audit_assistant_review.py --run results/B01/20261107T173708748922Z
+uv run python scripts/assistant_review.py --run results/B01/20261107T173708748922Z --blind --batch-size 16
+uv run python scripts/audit_assistant_review.py --run results/B01/20261107T173708748922Z --blind
+uv run python scripts/compare_reviews.py --run results/B01/20261107T173708748922Z
+uv run python scripts/audit_review_comparison.py --run results/B01/20261107T173708748922Z
 ```
 
 真人确认后，才能把确认结果写入原复核队列，导出正式 `result2.csv`，并据此重跑正式主题和价值评分。

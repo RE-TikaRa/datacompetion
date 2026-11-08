@@ -57,6 +57,10 @@ uv run python scripts/audit_cleaning.py --run results/B02/<运行时间>
 uv run python scripts/audit_topics.py --run results/B01/<主题运行时间>
 uv run python scripts/assistant_review.py --run results/B01/20261107T173708748922Z
 uv run python scripts/audit_assistant_review.py --run results/B01/20261107T173708748922Z
+uv run python scripts/assistant_review.py --run results/B01/20261107T173708748922Z --blind --batch-size 16
+uv run python scripts/audit_assistant_review.py --run results/B01/20261107T173708748922Z --blind
+uv run python scripts/compare_reviews.py --run results/B01/20261107T173708748922Z
+uv run python scripts/audit_review_comparison.py --run results/B01/20261107T173708748922Z
 ```
 
 `--keywords` 指定需求关键词，`--direction` 写入批次说明；只有命中关键词的记录会进入该需求的清洗结果。未指定 `--reference-date` 时按当前北京时间向前检索 90 天。每次采集使用新的批次号，已有批次不会覆盖。

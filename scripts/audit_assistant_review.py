@@ -13,6 +13,7 @@ from opportunity.judging import exact_source_quote
 
 parser = argparse.ArgumentParser(description="检查 AI 辅助复核结果和原人工队列。")
 parser.add_argument("--run", required=True, type=Path)
+parser.add_argument("--blind", action="store_true")
 args = parser.parse_args()
 cast(TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8")
 run = args.run if args.run.is_absolute() else ROOT / args.run
@@ -20,7 +21,8 @@ run = run.resolve()
 if not run.is_relative_to(ROOT / "results") or not run.is_dir():
     parser.error("判别运行目录必须位于项目 results 目录内。")
 review = run / "review"
-output = review / "assistant_review"
+output = review / ("assistant_review_blind" if args.blind else "assistant_review")
+job = read_json(output / "job.json")
 queue = read_jsonl(review / "review_queue.jsonl")
 items = read_jsonl(output / "assistant_review.jsonl")
 summary = read_json(output / "assistant_review_summary.json")
@@ -37,6 +39,22 @@ item_by_id = {row["record_id"]: row for row in items}
 errors = []
 if len(queue) != len(items) or set(queue_by_id) != set(item_by_id):
     errors.append("AI 辅助复核没有覆盖复核队列的全部记录。")
+expected_mode = "blind_to_automatic_judgement" if args.blind else "model_visible"
+allowed_job_modes: set[str | None] = {expected_mode}
+if not args.blind:
+    allowed_job_modes.add(None)
+if job.get("review_mode") not in allowed_job_modes:
+    errors.append("复核运行模式与审计参数不一致。")
+if args.blind and job.get("record_fields") != [
+    "record_id",
+    "source",
+    "content_kind",
+    "title",
+    "content",
+]:
+    errors.append("盲复核输入字段包含了不允许的内容。")
+if summary.get("review_mode") not in allowed_job_modes:
+    errors.append("复核摘要中的运行模式不一致。")
 for row in queue:
     if (
         row["human_is_opportunity"] is not None
