@@ -13,3 +13,20 @@ data/reference/web_policies/
 data/models/
 data/state/
 results/
+
+# Paper build intermediates and superseded local exports
+paper/figure-versions/
+paper/figures/*.svg
+paper/manuscript/docx_source/
+paper/manuscript/figures/
+paper/manuscript/*.aux
+paper/manuscript/*.log
+paper/manuscript/*.out
+paper/manuscript/*.synctex.gz
+paper/manuscript/main.pdf
+paper/manuscript/paper.docx
+paper/deliverables/AI应用机会智能挖掘与评估_B01.docx
+paper/deliverables/*修订版*
+paper/deliverables/*终稿*
+paper/deliverables/*交付版*
+paper/deliverables/~$*.docx

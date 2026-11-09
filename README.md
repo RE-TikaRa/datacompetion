@@ -93,6 +93,9 @@ ruff check --fix
 - [实施进展记录](reports/PROGRESS_REPORT.md)
 - [人工复核工作台](docs/REVIEW_WORKBENCH.md)
 - [AI 辅助工作记录](docs/AI_USAGE.md)
+- [B01 论文结果与证据边界](paper/RESULTS_REPORT.md)
+- [B01 论文证据账本](paper/EVIDENCE_LEDGER.md)
+- [论文源文件与交付版本](paper/manuscript/main.tex)
 
 ## 交付要求
 

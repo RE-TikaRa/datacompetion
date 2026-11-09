@@ -1,0 +1,33 @@
+\documentclass[UTF8,a4paper,11pt,fontset=fandol]{ctexart}
+\usepackage[a4paper,top=2.3cm,bottom=2.3cm,left=2.5cm,right=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,graphicx,float,xcolor,array,enumitem,hyperref,xurl,listings,caption}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
+\setlength{\parindent}{2em}
+\linespread{1.25}
+\renewcommand{\arraystretch}{1.2}
+\setlist{nosep,leftmargin=2.5em}
+\captionsetup{font=small,labelfont=bf}
+\lstset{basicstyle=\ttfamily\small,breaklines=true,frame=single,columns=fullflexible}
+\title{面向综合 AI 应用机会的多源智能挖掘与价值评估系统\\基于 B01 公开数据的探索性研究}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+生成式人工智能应用快速扩展后，公开网络中同时存在真实需求、产品宣传、技术展示和内部开发记录。仅依靠关键词或单一平台热度，难以把用户问题、可实现的 AI 能力和可立项方向区分开来。本文面向综合 AI 应用机会，构建一套从多源采集、清洗去重、机会判别、语义主题聚合、价值排序到决策支持的可追溯流程。系统在 90 日窗口内从 GitHub、Hacker News、量子位、IT之家和 V2EX 获取公开记录，经过来源链接归并和正文质量标记后保留 2,561 条记录。随后使用结构化模型输出检查需求信号、AI 核心性、技术可实现性和排除项，形成覆盖全量记录的自动判别；对 509 条分层复核样本开展可见标签辅助复核、盲复核和分歧裁定，形成明确标注来源的 AI 代理候选结果。基于 100 条代理机会候选重新聚合得到 14 个候选主题，并以多源指向度、记录规模和互动信号计算探索性价值分。结果显示，代理标签相对原模型发生了较多变化，候选主题中 12 个为单记录主题，轮廓系数为 0.204，说明当前证据更适合支撑系统流程验证和候选发现，不足以支持稳定热点、模型准确率或行业需求占比等强结论。本文进一步给出数据缺失、来源偏差、定向抽样和缺少真人真值的影响，并说明第五项任务中复核工作台与决策视图的实现边界，为后续人工确认与系统迭代提供依据。
+
+\noindent\textbf{关键词：} AI 应用机会；多源采集；语义聚类；价值评估；代理复核；决策支持
+\end{abstract}
+
+\input{sections/01_introduction}
+\input{sections/02_system}
+\input{sections/03_data}
+\input{sections/04_judgement}
+\input{sections/05_topics}
+\input{sections/06_case_and_discussion}
+\input{sections/07_conclusion}
+\input{references}
+\input{sections/A_code}
+\end{document}
