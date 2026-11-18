@@ -1,6 +1,6 @@
 # 项目细则与当前进度
 
-更新时间：2026-11-18。项目目录为 `C:/Users/Tika/Desktop/datacompetion`，分支为 `main`。本地提交状态和最新提交号请用 `git status --short --branch` 与 `git log -1 --oneline` 查看；改动只在本机，没有推送远程。
+更新时间：2026-11-19。项目目录为 `C:/Users/Tika/Desktop/datacompetion`，分支为 `main`。本地提交状态和最新提交号请用 `git status --short --branch` 与 `git log -1 --oneline` 查看；改动只在本机，没有推送远程。
 
 这份文档是项目导航和进度记录。README 负责快速入口，本文件负责说明目录职责、数据流、运行结果、验证方式、交付状态和剩余工作。`results/`、`data/raw/`、`data/processed/`、`data/models/` 等目录被 `.gitignore` 忽略，但它们仍然存在于本机，是当前研究结果的主要存储位置。
 
@@ -32,9 +32,9 @@
 | 模型辅助复核与裁定 | 已完成辅助过程 | 辅助结果保存在独立文件，人工字段只保存用户确认类别 |
 | 语义聚类与价值评分 | 已完成正式流程 | 14 个全量人工确认主题，12 个单记录主题，轮廓系数 0.2039439 |
 | 全量人工 `result2` | 已生成 | 2,561 条均登记为人工字段，100 条机会 |
-| 正式 `result3`、`result4` | 已生成 | `results/B01/20261118T160625774363Z/result3.csv`、`result4.csv` |
+| 正式 `result3`、`result4` | 已生成 | `results/B01/20261118T172331197137Z/result3.csv`、`result4.csv` |
 | 复核工作台 | 代码已完成 | FastAPI、本地页面、角色权限和标签校验已实现，当前没有运行服务 |
-| 论文 Word/PDF | 探索性修订版已验收 | 增加分类器嵌套验证、来源留出、图表和文献；新旧版分别保存 |
+| 论文 Word/PDF | 最终校验版已验收 | 增加分类器嵌套验证、来源留出、图表和文献；新旧版分别保存 |
 | 完整比赛提交包 | 已生成 | `submission/B01_全量提交_20261119.zip`；复核员截图已记录，决策者视图仍需补齐 |
 
 ### B01 关键数字
@@ -49,9 +49,9 @@
 | 原模型候选机会 | 269 | `results/B01/20261107T173708748922Z/result2.csv` |
 | 人工复核队列 | 509 | `results/B01/20261107T173708748922Z/review/` |
 | 全量人工确认机会候选 | 100 | `results/B01/20261118T160530815667Z/final/result2.csv` |
-| 正式主题 | 14 | `results/B01/20261118T160625774363Z/topics.json` |
+| 正式主题 | 14 | `results/B01/20261118T172331197137Z/topics.json` |
 | 单记录主题 | 12 | 同上 |
-| 正式主题最高分 | C2，85.76 | `results/B01/20261118T160625774363Z/scoring.json` |
+| 正式主题最高分 | C2，81.52 | `results/B01/20261118T172331197137Z/scoring.json` |
 
 ## 根目录文件
 
@@ -144,12 +144,12 @@
 | --- | --- | --- |
 | `paper/manuscript/main.tex` | 唯一论文主源文件 | 当前编辑源 |
 | `paper/manuscript/sections/` | 引言、方法、数据、判别、主题、案例、结论和复现说明 | 当前编辑源 |
-| `paper/manuscript/references.tex` | 17 条论文、API 和模型资料引用 | DOI 及出版社记录已核对 |
+| `paper/manuscript/references.tex` | 18 条论文、API 和模型资料引用 | DOI 及出版社记录已核对 |
 | `paper/figures/` | 17 张 B01 图，含 PNG、PDF 和 SVG | 由本地结果及实验输出生成 |
 | `paper/EVIDENCE_LEDGER.md` | 正文主张、证据和限制 | 已完成 |
 | `paper/RESULTS_REPORT.md` | B01 论文结果总表 | 已完成 |
 | `paper/FIGURE_STORYBOARD.md` | 图件用途、来源和解释边界 | 已完成 |
-| `paper/README.md` | 论文源、构建方式、探索修订交付和证据边界 | 已更新 |
+| `paper/README.md` | 论文源、构建方式、修订交付和证据边界 | 已更新 |
 | `paper/deliverables/*探索修订版_20261118*` | 新版 PDF 和 DOCX | 已完成编译与版面复核 |
 | `paper/deliverables/*最终校验版_20261118*` | 当前一致性校验后的 PDF 和 DOCX | 已完成 TeX 编译、PDF 逐页检查和 DOCX 结构检查 |
 | `submission/B01/` | 四份正式 CSV、论文、C2 策划案、AI 使用记录和验收说明 | 已生成 |
@@ -158,7 +158,7 @@
 | `paper/figure-versions/` | 早期图件版本 | 本地历史，不进入 Git |
 | `paper/manuscript/docx_source/` | 早期 Word 展开文件 | 本地历史，不进入 Git |
 
-论文是探索性系统方法和 B01 案例。2,561 条标签已经登记为人工确认字段，正式主题和 C2 策划案已生成；其中 2,052 条标签来自用户授权的 AI 判断转登记，不构成独立盲标真值。
+论文是系统方法与 B01 应用实践。2,561 条标签已经登记为人工确认字段，正式主题和 C2 策划案已生成；其中 2,052 条标签来自用户授权的 AI 判断转登记，不构成独立盲标真值。
 
 ### `reports/`
 
@@ -189,7 +189,7 @@
 | `20261107T222914355590Z` | 269 条原模型候选聚类和评分 | 非正式候选 |
 | `20261108T043220466135Z` | 100 条代理机会的 `proxy_result3.csv`、`proxy_result4.csv` 和明细 | 最新代理候选 |
 | `20261118T160530815667Z` | 2,561 条全量人工字段、正式 `result2.csv` 和来源登记 | 全量正式标签 |
-| `20261118T160625774363Z` | 正式 `result3.csv`、`result4.csv`、主题和评分 | 正式主题结果 |
+| `20261118T172331197137Z` | 正式 `result3.csv`、`result4.csv`、主题和评分 | 正式主题结果 |
 
 其中 `20261107T171955877644Z` 和 `20261107T172307813709Z` 是全量判别前的试运行/探针目录，不构成 B01 完整输出。四个以 `result3.csv`、`result4.csv` 命名的中间目录同样属于历史候选；正式生成的判断依据是 `topics.json` 中记录的 `label_source` 和状态字段。
 
@@ -252,7 +252,7 @@ data/raw/B01/
 - 清洗 `result1.csv` 结构审计通过，可描述为 B01 清洗结果。
 - 判别运行的 `result2.csv` 是原模型全量结果；正式人工登记结果位于 `results/B01/20261118T160530815667Z/final/result2.csv`。
 - `assistant_proxy_result2.csv` 是人工登记前的历史辅助结果，继续保留用于过程追溯。
-- 正式 `result3.csv`、`result4.csv` 位于 `results/B01/20261118T160625774363Z/`，成员、分数和优先级审计通过。
+- 正式 `result3.csv`、`result4.csv` 位于 `results/B01/20261118T172331197137Z/`，成员、分数和优先级审计通过。
 
 ## 查看进度和运行检查
 
@@ -285,7 +285,8 @@ uv run python scripts/audit_topics.py --run results/B01/20261118T035924558190Z
 
 ### 论文入口
 
-- 新版 Word/PDF：`paper/deliverables/*探索修订版_20261118.*`
+- 当前评审修订版 Word/PDF：`paper/deliverables/*评审修订版_20261119.*`
+- 历史探索修订版 Word/PDF：`paper/deliverables/*探索修订版_20261118.*`
 - 旧版校对件：`paper/deliverables/*校对版_20261109.*`
 - TeX 主源：`paper/manuscript/main.tex`
 - 结果总表：`paper/RESULTS_REPORT.md`
@@ -309,5 +310,5 @@ uv run python scripts/audit_topics.py --run results/B01/20261118T035924558190Z
 - 240 条负例按来源、正文类型和置信度定向抽取，不能无偏估计全量负例漏判率。
 - 缺少互动数据时保留缺失，不填为零；没有配置服务价格时 token 成本未知。
 - 复核工作台代码已实现，但未运行常驻服务或完成浏览器实操验收。
-- 论文属于探索性案例，C2 框架不是已确认的用户需求、市场规模或产品效果。
-- 2026-11-18 新版使用 Tectonic 的 XeTeX 引擎编译；`paper/manuscript/main.pdf` 是历史编译文件，不代表当前新版版面。
+- 论文将 B01 作为应用实践批次，C2 框架可用于应用端立项评估和产品试点设计，但不是已确认的用户需求、市场规模或产品效果。
+- 2026-11-19 评审修订版使用 Tectonic 的 XeTeX 引擎编译；`paper/manuscript/main.pdf` 是历史编译文件，不代表当前修订版版面。

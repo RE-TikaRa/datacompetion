@@ -2,6 +2,7 @@ import json
 import math
 import re
 from collections import Counter, defaultdict
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -254,6 +255,15 @@ def score_topics(
     max_sources = max((topic["source_count"] for topic in topics), default=1)
     max_records = max((topic["record_count"] for topic in topics), default=1)
     source_max: dict[str, dict[str, float]] = defaultdict(dict)
+    published_dates = []
+    for record in records.values():
+        published_at = record.get("published_at")
+        if published_at:
+            published_dates.append(
+                datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+            )
+    reference_date = max(published_dates) if published_dates else None
+    recency_half_life_days = 30.0
     for record in records.values():
         for key, value in record["metrics"].items():
             if key in {"stars", "points", "comments", "reactions"} and isinstance(
@@ -264,6 +274,7 @@ def score_topics(
                 )
     for topic in topics:
         heat_values = []
+        recency_values = []
         for record_id in topic["record_ids"]:
             record = records[record_id]
             heat = [
@@ -275,6 +286,16 @@ def score_topics(
             ]
             if heat:
                 heat_values.append(sum(heat) / len(heat))
+            if reference_date is not None and record.get("published_at"):
+                published_at = datetime.fromisoformat(
+                    record["published_at"].replace("Z", "+00:00")
+                )
+                age_days = max(
+                    0.0, (reference_date - published_at).total_seconds() / 86400
+                )
+                recency_values.append(
+                    100 * math.exp(-math.log(2) * age_days / recency_half_life_days)
+                )
         dimensions = {
             "multi_source_direction": 100 * topic["source_count"] / max_sources,
             "record_scale": 100
@@ -283,12 +304,16 @@ def score_topics(
             "interaction_signal": 100 * (sum(heat_values) / len(heat_values))
             if heat_values
             else None,
+            "recency_signal": (
+                sum(recency_values) / len(recency_values) if recency_values else None
+            ),
         }
         topic["dimension_scores"] = dimensions
         weights = {
-            "multi_source_direction": 0.45,
-            "record_scale": 0.35,
-            "interaction_signal": 0.20,
+            "multi_source_direction": 0.40,
+            "record_scale": 0.30,
+            "interaction_signal": 0.15,
+            "recency_signal": 0.15,
         }
         available = {
             name: (weight, dimensions[name])
@@ -309,14 +334,19 @@ def score_topics(
         topic["priority"] = priority
     return topics, {
         "weights": {
-            "multi_source_direction": 0.45,
-            "record_scale": 0.35,
-            "interaction_signal": 0.20,
+            "multi_source_direction": 0.40,
+            "record_scale": 0.30,
+            "interaction_signal": 0.15,
+            "recency_signal": 0.15,
         },
         "review_status": "候选结果，待人工复核",
         "heat_policy": (
             "按来源和指标分别取对数归一，簇内计算非缺失值均值。"
             "整个主题没有热度值时，按可用维度重新归一权重。"
+        ),
+        "recency_policy": (
+            "以 B01 记录中最新发布时间为参考日期，按 30 天半衰期计算"
+            " exp(-ln(2) * age_days / 30)，主题内对可用成员取均值。"
         ),
     }
 
@@ -324,24 +354,34 @@ def score_topics(
 def score_sensitivity(topics: list[dict]) -> dict:
     scenarios = {
         "base": {
-            "multi_source_direction": 0.45,
-            "record_scale": 0.35,
-            "interaction_signal": 0.20,
-        },
-        "source_heavy": {
-            "multi_source_direction": 0.55,
+            "multi_source_direction": 0.40,
             "record_scale": 0.30,
             "interaction_signal": 0.15,
+            "recency_signal": 0.15,
+        },
+        "source_heavy": {
+            "multi_source_direction": 0.50,
+            "record_scale": 0.25,
+            "interaction_signal": 0.10,
+            "recency_signal": 0.15,
         },
         "scale_heavy": {
             "multi_source_direction": 0.35,
-            "record_scale": 0.45,
-            "interaction_signal": 0.20,
+            "record_scale": 0.40,
+            "interaction_signal": 0.10,
+            "recency_signal": 0.15,
         },
         "heat_heavy": {
-            "multi_source_direction": 0.40,
-            "record_scale": 0.30,
-            "interaction_signal": 0.30,
+            "multi_source_direction": 0.35,
+            "record_scale": 0.25,
+            "interaction_signal": 0.25,
+            "recency_signal": 0.15,
+        },
+        "recency_heavy": {
+            "multi_source_direction": 0.35,
+            "record_scale": 0.25,
+            "interaction_signal": 0.10,
+            "recency_signal": 0.30,
         },
     }
     ranks = {}

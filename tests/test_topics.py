@@ -56,7 +56,43 @@ def test_missing_heat_is_not_scored_as_zero_and_weights_renormalize():
     assert scored[0]["dimension_scores"]["multi_source_direction"] == 100
     assert scored[0]["dimension_scores"]["record_scale"] == 100
     assert scored[0]["scoring_weights"]["multi_source_direction"] == pytest.approx(
-        0.5625
+        0.5714285714
     )
-    assert scored[0]["scoring_weights"]["record_scale"] == pytest.approx(0.4375)
-    assert info["weights"]["interaction_signal"] == 0.2
+    assert scored[0]["scoring_weights"]["record_scale"] == pytest.approx(0.4285714286)
+    assert info["weights"]["interaction_signal"] == 0.15
+
+
+def test_recency_uses_latest_batch_date_and_half_life():
+    topics = [
+        {
+            "topic_id": "C1",
+            "record_ids": ["S00001"],
+            "source_count": 1,
+            "record_count": 1,
+        },
+        {
+            "topic_id": "C2",
+            "record_ids": ["S00002"],
+            "source_count": 1,
+            "record_count": 1,
+        },
+    ]
+    records = {
+        "S00001": {
+            "source_id": "forum",
+            "metrics": {},
+            "published_at": "2026-11-07T00:00:00Z",
+        },
+        "S00002": {
+            "source_id": "forum",
+            "metrics": {},
+            "published_at": "2026-10-08T00:00:00Z",
+        },
+    }
+    scored, _ = score_topics(topics, records, {})
+    by_id = {topic["topic_id"]: topic for topic in scored}
+    assert by_id["C1"]["dimension_scores"]["recency_signal"] == pytest.approx(100)
+    assert by_id["C2"]["dimension_scores"]["recency_signal"] == pytest.approx(50)
+    assert by_id["C1"]["scoring_weights"]["recency_signal"] == pytest.approx(
+        0.1764705882
+    )

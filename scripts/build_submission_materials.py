@@ -38,7 +38,7 @@ C2 是 B01 正式全量标签结果中的第一优先级主题。主题包含
 {topic["value_score"]:.2f}。主题成员涉及智能体架构、网络排障、医疗协同、代码模型、
 论文检索、三维编辑和实时语音等方向，适合提炼为面向复杂任务的可审计智能体工作台。
 
-该主题是公开记录中的技术需求集合。它支持产品验证和需求访谈安排，不代表已经确认的市场规模、用户承诺或上线效果。
+该主题是公开记录中的技术需求集合，可作为应用端立项评估、需求访谈和产品试点设计的输入，不代表已经确认的市场规模、用户承诺或上线效果。
 
 ## 2 目标用户
 
@@ -118,9 +118,11 @@ C2 是 B01 正式全量标签结果中的第一优先级主题。主题包含
 - 多源指向度：{dimensions["multi_source_direction"]:.2f}；
 - 记录规模：{dimensions["record_scale"]:.2f}；
 - 互动信号：{dimensions["interaction_signal"]:.2f}；
+- 时间新近性：{dimensions["recency_signal"]:.2f}；
 - 权重：多源指向度 {weights["multi_source_direction"]:.2f}、记录规模
   {weights["record_scale"]:.2f}、互动信号
-  {weights["interaction_signal"]:.2f}。
+  {weights["interaction_signal"]:.2f}、时间新近性
+  {weights["recency_signal"]:.2f}。
 
 ## 10 成员证据
 
@@ -129,8 +131,8 @@ C2 是 B01 正式全量标签结果中的第一优先级主题。主题包含
 ## 11 结果边界
 
 B01 的全量机会标签由用户授权将现有 AI 判别结果登记为人工确认字段。该登记完成了
-比赛结果链路，但不等同于独立盲标实验。C2 的主题成员和评分用于安排验证与产品试点，
-不能替代真实用户访谈、市场规模调查或上线效果评估。
+比赛结果链路，但不等同于独立盲标实验。C2 的主题成员和评分用于应用端立项评估、产品
+试点设计和验证指标制定，不能替代真实用户访谈、市场规模调查或上线效果评估。
 """
     output.write_text(text, encoding="utf-8")
 
@@ -139,6 +141,19 @@ parser = argparse.ArgumentParser(description="生成 B01 全量比赛提交材�
 parser.add_argument("--formal-run", required=True, type=Path)
 parser.add_argument("--full-label-run", required=True, type=Path)
 parser.add_argument("--output", type=Path, default=Path("submission/B01"))
+parser.add_argument(
+    "--paper-pdf",
+    type=Path,
+    default=ROOT
+    / "paper/deliverables/AI应用机会智能挖掘与评估系统_B01_最终校验版_20261119.pdf",
+)
+parser.add_argument(
+    "--paper-docx",
+    type=Path,
+    default=ROOT
+    / "paper/deliverables/AI应用机会智能挖掘与评估系统_B01_最终校验版_20261119.docx",
+)
+parser.add_argument("--paper-label", default="最终校验版_20261119")
 args = parser.parse_args()
 
 formal_run = (
@@ -152,6 +167,14 @@ full_label_run = (
 ).resolve()
 output = args.output if args.output.is_absolute() else ROOT / args.output
 output = output.resolve()
+paper_pdf = args.paper_pdf if args.paper_pdf.is_absolute() else ROOT / args.paper_pdf
+paper_docx = (
+    args.paper_docx if args.paper_docx.is_absolute() else ROOT / args.paper_docx
+)
+paper_pdf = paper_pdf.resolve()
+paper_docx = paper_docx.resolve()
+if not paper_pdf.is_file() or not paper_docx.is_file():
+    parser.error("指定的论文 PDF 或 DOCX 不存在。")
 if not formal_run.is_relative_to(ROOT / "results"):
     parser.error("formal-run 必须位于项目 results 目录内。")
 if not full_label_run.is_relative_to(ROOT / "results"):
@@ -187,20 +210,11 @@ for source, target_name in (
     (formal_run / "result4.csv", "result4.csv"),
 ):
     shutil.copy2(source, results_dir / target_name)
+paper_pdf_name = f"论文_B01_{args.paper_label}.pdf"
+paper_docx_name = f"论文_B01_{args.paper_label}.docx"
 for source, target_name in (
-    (
-        ROOT
-        / "paper/deliverables/AI应用机会智能挖掘与评估系统_B01_最终校验版_20261119.pdf",
-        "论文_B01_最终校验版_20261119.pdf",
-    ),
-    (
-        ROOT
-        / (
-            "paper/deliverables/"
-            "AI应用机会智能挖掘与评估系统_B01_最终校验版_20261119.docx"
-        ),
-        "论文_B01_最终校验版_20261119.docx",
-    ),
+    (paper_pdf, paper_pdf_name),
+    (paper_docx, paper_docx_name),
 ):
     shutil.copy2(source, paper_dir / target_name)
 shutil.copy2(ROOT / "docs/AI_USAGE.md", docs_dir / "AI_USAGE.md")
@@ -224,13 +238,12 @@ manifest = {
         "results/result3.csv",
         "results/result4.csv",
         "proposal/C2_AI智能体证据工作台策划案.md",
-        "proposal/C2_AI智能体证据工作台策划案_排版版.docx",
-        "paper/论文_B01_最终校验版_20261119.pdf",
-        "paper/论文_B01_最终校验版_20261119.docx",
+        f"paper/{paper_pdf_name}",
+        f"paper/{paper_docx_name}",
         "docs/AI_USAGE.md",
         "docs/VERIFY_REPORT.md",
     ],
-    "status": "完整比赛结果包，标签来源和探索性边界见 docs/VERIFY_REPORT.md",
+    "status": "完整比赛结果包，标签来源和证据边界见 docs/VERIFY_REPORT.md",
 }
 (output / "manifest.json").write_text(
     json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

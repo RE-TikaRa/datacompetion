@@ -506,8 +506,13 @@ def build_embedding_pca() -> None:
 
 
 def build_topic_dimension_heatmap() -> None:
-    dimension_keys = ["multi_source_direction", "record_scale", "interaction_signal"]
-    dimension_labels = ["多源指向", "记录规模", "互动信号"]
+    dimension_keys = [
+        "multi_source_direction",
+        "record_scale",
+        "interaction_signal",
+        "recency_signal",
+    ]
+    dimension_labels = ["多源指向", "记录规模", "互动信号", "时间新近性"]
     values = np.asarray(
         [
             [
@@ -527,7 +532,7 @@ def build_topic_dimension_heatmap() -> None:
     ]
     cmap = plt.get_cmap("YlGnBu").copy()
     cmap.set_bad("#E8E8E8")
-    fig, ax = plt.subplots(figsize=(7.2, 5.3))
+    fig, ax = plt.subplots(figsize=(8.0, 5.3))
     image = ax.imshow(
         np.ma.masked_invalid(values), aspect="auto", cmap=cmap, vmin=0, vmax=100
     )
@@ -550,7 +555,12 @@ def build_topic_dimension_heatmap() -> None:
 
 
 def build_topic_rank_sensitivity() -> None:
-    keys = ["multi_source_direction", "record_scale", "interaction_signal"]
+    keys = [
+        "multi_source_direction",
+        "record_scale",
+        "interaction_signal",
+        "recency_signal",
+    ]
     rng = np.random.default_rng(20261118)
     weights = rng.dirichlet(np.ones(len(keys)), size=20000)
     scores = np.zeros((len(weights), len(topics)), dtype=np.float64)
