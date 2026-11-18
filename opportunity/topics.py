@@ -16,6 +16,12 @@ from opportunity.embedding import TextEmbedder
 from opportunity.files import ROOT, read_json, read_jsonl
 from opportunity.model import ModelClient
 
+MULTI_SOURCE_HOTSPOT_MIN_SOURCES = 2
+
+
+def is_multi_source_hotspot(topic: dict) -> bool:
+    return topic["source_count"] >= MULTI_SOURCE_HOTSPOT_MIN_SOURCES
+
 
 class TopicLabel(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -234,6 +240,10 @@ def cluster_topics(
         "candidate_records": len(candidates),
         "topic_count": len(topics),
         "noise_records": len(noise),
+        "multi_source_hotspot_min_sources": MULTI_SOURCE_HOTSPOT_MIN_SOURCES,
+        "multi_source_hotspot_topic_ids": [
+            topic["topic_id"] for topic in topics if is_multi_source_hotspot(topic)
+        ],
         "silhouette_score": float(
             silhouette_score(embeddings[cluster_records], clustered_labels)
         )

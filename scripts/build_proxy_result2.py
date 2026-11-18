@@ -15,6 +15,7 @@ from opportunity.files import (
     write_json,
     write_jsonl,
 )
+from opportunity.judging import opportunity_confidence
 
 
 def build_proxy_result2(run: Path, root: Path = ROOT) -> Path:
@@ -76,7 +77,7 @@ def build_proxy_result2(run: Path, root: Path = ROOT) -> Path:
             row["batch_id"],
             row["record_id"],
             int(row["is_opportunity"]),
-            row["confidence"],
+            opportunity_confidence(row["confidence"], row["is_opportunity"]),
             row["functional_category"],
             row["industry"],
         ]

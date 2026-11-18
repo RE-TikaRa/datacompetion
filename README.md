@@ -91,7 +91,7 @@ uv run python scripts/aggregate_topics.py --cleaning-run results/B01/20261107T16
 
 `clean` 从该批次采集字段生成新的独立运行目录，包含官方表头 `result1.csv`、正文快照、来源关联和清洗报告。
 
-前两条 `assistant-proxy` 命令只用于复现历史辅助结果；正式结果使用 `results/B01/20261118T160530815667Z/` 的全量人工字段和 `results/B01/20261118T172331197137Z/` 的正式主题输出。
+前两条 `assistant-proxy` 命令只用于复现历史辅助结果；正式结果使用 `results/B01/20261118T160530815667Z/` 的全量人工字段和 `results/B01/20261118T192102321700Z/` 的正式主题输出。
 
 ```powershell
 ruff format

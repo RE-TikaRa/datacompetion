@@ -14,6 +14,7 @@ from opportunity.files import (
     write_json,
     write_jsonl,
 )
+from opportunity.judging import opportunity_confidence
 
 parser = argparse.ArgumentParser(
     description="将全量模型判别结果按用户授权登记为人工确认标签。"
@@ -84,7 +85,7 @@ csv_rows = [
         row.get("batch_id") or manifest["batch_id"],
         row["record_id"],
         int(row["is_opportunity"]),
-        row["confidence"],
+        opportunity_confidence(row["confidence"], row["is_opportunity"]),
         row["functional_category"],
         row["industry"],
     ]
@@ -102,7 +103,9 @@ write_json(
         "human_opportunities": opportunities,
         "human_non_opportunities": len(rows) - opportunities,
         "model_labels_not_reviewed": 0,
-        "confidence_source": "模型自评置信度，未进行概率校准",
+        "confidence_source": (
+            "机会置信度按机会方向输出，阈值 0.5；原始模型自评值未进行概率校准"
+        ),
         "human_label_origin": (
             "User-authorized conversion of the complete AI judgement output "
             "to human confirmation fields"

@@ -38,7 +38,7 @@ parser.add_argument(
     default=Path("results/B01/20261107T173708748922Z/review/assistant_adjudication"),
 )
 parser.add_argument(
-    "--topic-run", type=Path, default=Path("results/B01/20261118T172331197137Z")
+    "--topic-run", type=Path, default=Path("results/B01/20261118T192102321700Z")
 )
 parser.add_argument(
     "--experiment-run",

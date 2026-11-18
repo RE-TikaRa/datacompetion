@@ -15,6 +15,7 @@ from opportunity.files import (
     write_json,
     write_jsonl,
 )
+from opportunity.judging import opportunity_confidence
 from opportunity.review_adoption import adoption_errors
 
 
@@ -111,7 +112,7 @@ def finalize(run: Path, root: Path = ROOT) -> Path:
             row.get("batch_id") or manifest.get("batch_id", ""),
             row["record_id"],
             int(row["is_opportunity"]),
-            row["confidence"],
+            opportunity_confidence(row["confidence"], row["is_opportunity"]),
             row["functional_category"],
             row["industry"],
         ]
@@ -150,7 +151,7 @@ def finalize(run: Path, root: Path = ROOT) -> Path:
         ),
         "model_labels_not_reviewed": len(rows) - len(human_reviewed),
         "confidence_source": (
-            "模型自评置信度，未进行概率校准；人工复核只覆盖人工复核清单中的记录"
+            "机会置信度按机会方向输出，阈值 0.5；原始模型自评值未进行概率校准"
         ),
         "human_label_origin": (
             adoption["label_origin"]

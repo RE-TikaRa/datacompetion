@@ -5,6 +5,7 @@ from opportunity.judging import (
     JudgmentItem,
     exact_source_quote,
     is_opportunity,
+    opportunity_confidence,
     validate_batch,
 )
 
@@ -126,3 +127,27 @@ def test_product_without_an_observable_demand_is_not_an_opportunity():
     )
     validate_batch(result, records, labels)
     assert not is_opportunity(result.items[0])
+
+
+def test_opportunity_confidence_is_oriented_to_opportunity_direction():
+    assert opportunity_confidence(0.91, True) == pytest.approx(0.91)
+    assert opportunity_confidence(0.91, False) == pytest.approx(0.09)
+
+
+def test_opportunity_threshold_is_applied_after_boolean_gate():
+    item = JudgmentItem(
+        record_id="S00001",
+        confidence=0.49,
+        observable_demand=True,
+        ai_core=True,
+        technically_feasible=True,
+        excluded=False,
+        functional_category="对话问答",
+        industry="电商",
+        user_need="客服压力",
+        ai_role="回答咨询",
+        feasibility="成熟模型可实现",
+        evidence=["有没有客服工具"],
+        exclusion_reason="",
+    )
+    assert not is_opportunity(item)

@@ -2,6 +2,7 @@ import pytest
 
 from opportunity.topics import (
     TopicLabelBatch,
+    is_multi_source_hotspot,
     score_topics,
     short_title,
     top_keywords,
@@ -33,6 +34,11 @@ def test_topic_label_batch_accepts_model_result_aliases():
         ]
     }
     assert TopicLabelBatch.model_validate(payload).topics[0].topic_id == "C1"
+
+
+def test_multi_source_hotspot_requires_two_sources():
+    assert is_multi_source_hotspot({"source_count": 2})
+    assert not is_multi_source_hotspot({"source_count": 1})
 
 
 def test_missing_heat_is_not_scored_as_zero_and_weights_renormalize():

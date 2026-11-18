@@ -57,12 +57,21 @@ class JudgmentBatch(BaseModel):
         return self.items
 
 
+OPPORTUNITY_CONFIDENCE_THRESHOLD = 0.5
+
+
+def opportunity_confidence(confidence: float, is_opportunity: bool) -> float:
+    """Return the confidence oriented toward the official opportunity field."""
+    return round(confidence if is_opportunity else 1 - confidence, 6)
+
+
 def is_opportunity(item: JudgmentItem) -> bool:
     return (
         item.observable_demand
         and item.ai_core
         and item.technically_feasible
         and not item.excluded
+        and item.confidence >= OPPORTUNITY_CONFIDENCE_THRESHOLD
     )
 
 
@@ -141,7 +150,10 @@ INSTRUCTIONS = (
     "4. excluded：是否为纯教程、科普、新闻转述、广告或融资宣传。\n\n"
     "机会判断由程序计算：前三项都为 true 且 excluded 为 false。"
     "机会的功能和行业必须逐字选自允许列表。非机会的两个标签留空。\n\n"
-    "confidence 是尚未人工校准的自评值。evidence 最多三条，必须逐字来自正文。"
+    "confidence 是模型对当前四项判定的自评值，尚未人工校准。"
+    "程序以 0.5 作为机会候选的最低自评阈值；表格中的机会置信度按机会方向输出，"
+    "非机会记录使用 1-confidence，数值越大表示越支持构成机会。"
+    "evidence 最多三条，必须逐字来自正文。"
     "正文只有标题或简介且证据不足时，不要外推业务事实。\n\n"
     "完整返回输入中的 record_id，每个仅出现一次。"
 )
@@ -424,7 +436,7 @@ def judge_batch(
                 report["batch_id"],
                 item["record_id"],
                 int(item["is_opportunity"]),
-                item["confidence"],
+                opportunity_confidence(item["confidence"], item["is_opportunity"]),
                 item["functional_category"],
                 item["industry"],
             ]
