@@ -2,18 +2,18 @@
 
 \subsection{数据来源与采集范围}
 
-在本文中，B01 是本项目首个独立数据批次的内部编号，需求方向为综合 AI 应用机会，覆盖多个行业。时间窗为 2026 年 8 月 10 日 00:00 至 11 月 7 日 23:38:19（北京时间）。系统使用 GitHub REST 搜索仓库与 Issue\cite{githubapi}，使用 Hacker News Algolia 搜索 API\cite{hnapi}，使用量子位公开 WordPress 接口\cite{wpapi}，以及 IT之家和 V2EX 的公开订阅入口。不同来源提供的信号不同：GitHub 更接近工程能力和使用障碍，Hacker News 包含寻解讨论，资讯站提供应用和技术内容，V2EX 提供中文用户问题与工具讨论。
+本研究使用首个独立综合 AI 应用数据批次，需求方向为综合 AI 应用机会，覆盖多个行业。时间窗为 2026 年 8 月 10 日 00:00 至 11 月 7 日 23:38:19（北京时间）。系统使用 GitHub REST 搜索仓库与 Issue\cite{githubapi}，使用 Hacker News Algolia 搜索 API\cite{hnapi}，使用量子位公开 WordPress 接口\cite{wpapi}，以及 IT之家和 V2EX 的公开订阅入口。不同来源提供的信号不同：GitHub 更接近工程能力和使用障碍，Hacker News 包含寻解讨论，资讯站提供应用和技术内容，V2EX 提供中文用户问题与工具讨论。
 
 五个来源的记录规模如图~\ref{fig:sources} 所示。Hacker News 的记录数远高于其余来源，这一结构差异会影响后续主题规模和互动信号。GitHub 检索按星标与讨论排序，Hacker News 搜索按接口排序截取分页，量子位覆盖时间窗内接口返回的全部文章，IT之家与 V2EX 只返回当前订阅页内容。网站数量和采集记录数因此只描述本批次实际覆盖，不能换算成各行业用户需求比例。
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.86\textwidth]{../figures/fig01_source_counts.pdf}
-  \caption{B01 清洗记录的来源规模。Hacker News 占比较高，来源结构存在明显偏斜。}
+  \caption{本研究清洗记录的来源规模。Hacker News 占比较高，来源结构存在明显偏斜。}
   \label{fig:sources}
 \end{figure}
 
-采集阶段共出现 3,576 次原始字段记录，其中同一来源记录可能因命中多个检索条件而重复。方向筛选排除 742 次字段出现，URL 归并排除 267 条，另有 1 条超出时间窗；得到 2,566 条来源 URL 唯一记录。再按正文证据归并 5 组完全或高度相似内容后，最终保留 2,561 条。来源数量分别为 Hacker News 1,523、量子位 581、GitHub 387、V2EX 48 和 IT之家 22。量子位接口在时间窗内返回的 723 篇记录均已获取；Hacker News、GitHub 搜索和 RSS 入口存在分页或历史覆盖限制，因此本文只把 B01 描述为公开样本批次，不外推平台总体分布。时间覆盖和来源信号的处理也遵循公开指标构造与阶段识别研究中强调的可计算规则\cite{song2020urban}。
+采集阶段共出现 3,576 次原始字段记录，其中同一来源记录可能因命中多个检索条件而重复。方向筛选排除 742 次字段出现，URL 归并排除 267 条，另有 1 条超出时间窗；得到 2,566 条来源 URL 唯一记录。再按正文证据归并 5 组完全或高度相似内容后，最终保留 2,561 条。来源数量分别为 Hacker News 1,523、量子位 581、GitHub 387、V2EX 48 和 IT之家 22。量子位接口在时间窗内返回的 723 篇记录均已获取；Hacker News、GitHub 搜索和 RSS 入口存在分页或历史覆盖限制，因此本文只把这批数据描述为公开样本批次，不外推平台总体分布。时间覆盖和来源信号的处理也遵循公开指标构造与阶段识别研究中强调的可计算规则\cite{song2020urban}。
 
 \subsection{清洗、去重与质量标记}
 
@@ -37,7 +37,7 @@
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.98\textwidth]{../figures/fig07_weekly_source_heatmap.pdf}
-  \caption{B01 清洗记录的来源与发布周分布。最后一组是截至 2026 年 11 月 7 日的不完整周，计数描述采集样本。}
+  \caption{本研究清洗记录的来源与发布周分布。最后一组是截至 2026 年 11 月 7 日的不完整周，计数描述采集样本。}
   \label{fig:weekly-sources}
 \end{figure}
 

@@ -2,7 +2,7 @@
 
 ## 结论
 
-论文评审修订版已完成 TeX 编译、PDF 逐页检查和 DOCX 结构检查。B01 全量人工字段已经登记，正式 `result2/result3/result4` 和 C2 策划案已经生成。
+论文评审修订版已完成 TeX 编译、PDF 逐页检查和 DOCX 结构检查。该数据批次全量人工字段已经登记，正式 `result2/result3/result4` 和 C2 策划案已经生成。
 
 ## 检查项
 
@@ -26,11 +26,11 @@
 
 ## 图表引用
 
-正文使用 17 张由 B01 数据生成的图和 4 张结果表。独立引用扫描确认 17 个图件路径存在，正文没有引用旧的 `fig06_proxy_confusion.pdf`；该历史文件保留在图件目录中但不进入当前论文。
+正文使用 17 张由该数据批次生成的图和 4 张结果表。独立引用扫描确认 17 个图件路径存在，正文没有引用旧的 `fig06_proxy_confusion.pdf`；该历史文件保留在图件目录中但不进入当前论文。
 
 ## 数值一致性
 
-数据数量取自 B01 清洗与判别运行；人工确认字段取自 `results/B01/20261118T160530815667Z/final/final_judgements.jsonl`、`result2.csv` 和 `full_label_adoption.json`；主题与分数取自 `results/B01/20261118T172331197137Z/topics.json` 和 `scoring.json`。2,561 条人工字段中有 100 条机会，14 个展示主题，12 个噪声单记录展示项，轮廓系数为 0.2039438784。
+数据数量取自该数据批次清洗与判别运行；人工确认字段取自 `results/B01/20261118T160530815667Z/final/final_judgements.jsonl`、`result2.csv` 和 `full_label_adoption.json`；主题与分数取自 `results/B01/20261118T172331197137Z/topics.json` 和 `scoring.json`。2,561 条人工字段中有 100 条机会，14 个展示主题，12 个噪声单记录展示项，轮廓系数为 0.2039438784。
 
 509 条队列经用户逐条审阅后确认人工类别，最终保留 100 条机会、409 条非机会，相对原模型有 169 条标签变化，人工备注为空。其余 2,052 条记录按用户授权将已有 AI 判断转登记为人工字段，未保存 AI 建议文本；分类器结果只描述 509 条逐条审阅样本。
 
@@ -56,7 +56,7 @@ DOCX 从相同 TeX 正文展开生成。当前环境没有 `soffice`，因此本
 ## 当前文件
 
 - 编辑源：`paper/manuscript/main.tex`、`paper/manuscript/sections/`、`paper/manuscript/references.tex`
-- 当前交付：`paper/deliverables/AI应用机会智能挖掘与评估系统_B01_评审修订版_20261119.pdf`、`paper/deliverables/AI应用机会智能挖掘与评估系统_B01_评审修订版_20261119.docx`
+- 当前交付：`paper/deliverables/AI应用机会智能挖掘与评估系统_评审修订版_20261119.pdf`、`paper/deliverables/AI应用机会智能挖掘与评估系统_评审修订版_20261119.docx`
 - 历史导出：`paper/deliverables/` 中更早的修订版、终稿、交付版、探索修订版和校对版文件；保留为审阅过程产物，最终校验版为当前版本
 - 首次编译覆盖说明：`paper/manuscript/main.pdf` 曾被首次 Tectonic 命令覆盖，当前文件仍保留该版本；所有后续 PDF 均输出至新建临时目录，没有继续写入该路径
 - 人工标签确认记录：`results/B01/20261107T173708748922Z/review/human_adoption.json`

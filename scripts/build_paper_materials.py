@@ -1,3 +1,4 @@
+import argparse
 import json
 from collections import Counter
 from pathlib import Path
@@ -13,6 +14,12 @@ PROXY_FULL = PROXY / "full_batch_proxy"
 TOPICS = ROOT / "results/B01/20261108T043220466135Z"
 PAPER = ROOT / "paper"
 FIGURES = PAPER / "figures"
+
+parser = argparse.ArgumentParser(description="生成论文基础图件与证据报告。")
+parser.add_argument("--figures-only", action="store_true")
+parser.add_argument("--figure", action="append", dest="figure_filter")
+args = parser.parse_args()
+FIGURE_FILTER = set(args.figure_filter or [])
 
 
 def read_json(path: Path):
@@ -48,6 +55,9 @@ def setup_plot() -> None:
 
 
 def save_figure(fig, stem: str) -> None:
+    if FIGURE_FILTER and stem not in FIGURE_FILTER:
+        plt.close(fig)
+        return
     fig.savefig(FIGURES / f"{stem}.png", bbox_inches="tight")
     fig.savefig(FIGURES / f"{stem}.pdf", bbox_inches="tight")
     fig.savefig(FIGURES / f"{stem}.svg", bbox_inches="tight")
@@ -63,7 +73,7 @@ def build_figures(records: list[dict], proxy: list[dict], topics: list[dict]) ->
     values = [item[1] for item in source_order][::-1]
     bars = ax.barh(names, values, color="#3568a8")
     ax.set_xlabel("清洗后记录数")
-    ax.set_title("B01 各公开来源的清洗记录规模")
+    ax.set_title("各公开来源的清洗记录规模")
     ax.bar_label(bars, padding=3, fmt="%d")
     ax.set_xlim(0, max(values) * 1.16)
     save_figure(fig, "fig01_source_counts")
@@ -194,7 +204,10 @@ def build_reports(records: list[dict], proxy: list[dict], topics: list[dict]) ->
         "",
         "## 研究对象",
         "",
-        "- 研究批次：B01。需求方向为综合 AI 应用机会，覆盖多个行业。",
+        (
+            "- 研究对象：首批综合 AI 应用公开数据批次。"
+            "需求方向为综合 AI 应用机会，覆盖多个行业。"
+        ),
         "- 时间窗：2026-08-10 至 2026-11-07（北京时间口径）。",
         "- 来源：GitHub、Hacker News、量子位、IT之家、V2EX，共 5 个公开来源。",
         (
@@ -208,7 +221,7 @@ def build_reports(records: list[dict], proxy: list[dict], topics: list[dict]) ->
         "| 论文主张 | 证据文件 | 强度 | 限制 |",
         "| --- | --- | --- | --- |",
         (
-            "| B01 完成多源公开数据采集与可追溯清洗 | "
+            "| 首批数据批次完成多源公开数据采集与可追溯清洗 | "
             "采集与清洗报告 | 结构审计通过 | 来源样本量和历史覆盖不一致 |"
         ),
         (
@@ -218,7 +231,7 @@ def build_reports(records: list[dict], proxy: list[dict], topics: list[dict]) ->
             f"{cleaning['quality_flags']['missing_heat']} 条缺少热度 |"
         ),
         (
-            "| 原模型覆盖全部清洗记录 | judging.json、JUDGING_B01.md | "
+            "| 原模型覆盖全部清洗记录 | judging.json、判别报告 | "
             "结构审计通过 | 置信度是模型自评，尚未校准 |"
         ),
         (
@@ -265,7 +278,7 @@ def build_reports(records: list[dict], proxy: list[dict], topics: list[dict]) ->
     (PAPER / "EVIDENCE_LEDGER.md").write_text(evidence, encoding="utf-8")
 
     result_lines = [
-        "# B01 论文结果总表",
+        "# 论文结果总表",
         "",
         "## 数据规模",
         "",
@@ -300,7 +313,7 @@ def build_reports(records: list[dict], proxy: list[dict], topics: list[dict]) ->
         "主题结果仅作为探索性候选。\n\n"
         f"代理评分排名第一主题为 {scoring['ranking'][0]['topic_id']}，"
         f"机会价值分 {scoring['ranking'][0]['value_score']:.2f}。"
-        "该排名只适用于当前代理标签和当前 B01 样本。\n"
+        "该排名只适用于当前代理标签和当前数据样本。\n"
     )
     results += result_topic
     (PAPER / "RESULTS_REPORT.md").write_text(results, encoding="utf-8")
@@ -312,7 +325,7 @@ def build_reports(records: list[dict], proxy: list[dict], topics: list[dict]) ->
             "| 图表 | 论证问题 | 数据来源 | 计划位置 | 结论边界 |",
             "| --- | --- | --- | --- | --- |",
             (
-                "| Figure 1 | B01 来源组成与样本规模 | records.jsonl | "
+                "| Figure 1 | 来源组成与样本规模 | records.jsonl | "
                 "数据与采集 | 不代表平台总体 |"
             ),
             (
@@ -347,7 +360,8 @@ records = read_jsonl(CLEANING / "records.jsonl")
 proxy = read_jsonl(PROXY_FULL / "assistant_proxy_judgements.jsonl")
 topics = read_json(TOPICS / "topics.json")["topics"]
 build_figures(records, proxy, topics)
-build_reports(records, proxy, topics)
+if not args.figures_only:
+    build_reports(records, proxy, topics)
 print(
     json.dumps(
         {

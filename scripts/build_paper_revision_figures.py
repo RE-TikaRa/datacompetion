@@ -26,7 +26,7 @@ def read_jsonl(path: Path) -> list[dict]:
     ]
 
 
-parser = argparse.ArgumentParser(description="根据 B01 结果生成论文新增图件。")
+parser = argparse.ArgumentParser(description="根据首批公开数据结果生成论文新增图件。")
 parser.add_argument(
     "--cleaning-run",
     type=Path,
@@ -38,7 +38,7 @@ parser.add_argument(
     default=Path("results/B01/20261107T173708748922Z/review/assistant_adjudication"),
 )
 parser.add_argument(
-    "--topic-run", type=Path, default=Path("results/B01/20261118T035924558190Z")
+    "--topic-run", type=Path, default=Path("results/B01/20261118T172331197137Z")
 )
 parser.add_argument(
     "--experiment-run",
@@ -190,7 +190,7 @@ def build_weekly_source_heatmap() -> None:
         ha="right",
     )
     ax.set_xlabel("发布周（周一）")
-    ax.set_title("B01 清洗记录的来源与时间覆盖")
+    ax.set_title("清洗记录的来源与时间覆盖")
     for row in range(matrix.shape[0]):
         for column in range(matrix.shape[1]):
             value = int(matrix[row, column])
@@ -716,7 +716,7 @@ def build_method_diagram() -> None:
     ax.text(
         0.35,
         5.84,
-        "B01 公开文本机会发现与人工标签实验",
+        "公开文本机会发现与人工标签实验",
         fontsize=13,
         weight="bold",
         color=BLUE,

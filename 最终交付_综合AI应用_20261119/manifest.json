@@ -1,0 +1,20 @@
+{
+  "dataset_label": "首批综合 AI 应用公开数据批次",
+  "records": 2561,
+  "opportunities": 100,
+  "topics": 14,
+  "files": [
+    "results/result1.csv",
+    "results/result2.csv",
+    "results/result3.csv",
+    "results/result4.csv",
+    "paper/论文_综合AI应用_评审修订版_20261119.pdf",
+    "paper/论文_综合AI应用_评审修订版_20261119.docx",
+    "proposal/C2_AI智能体证据工作台策划案.md",
+    "proposal/C2_AI智能体证据工作台策划案_评审修订版_20261119.docx",
+    "docs/AI_USAGE.md",
+    "docs/VERIFY_REPORT.md",
+    "docs/SCREENSHOT_LOG.md"
+  ],
+  "status": "完整公开数据应用实践交付包"
+}
