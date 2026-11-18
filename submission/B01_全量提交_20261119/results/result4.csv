@@ -1,0 +1,15 @@
+﻿采集批次号,主题簇编号,主题簇名称,功能类别,所属行业,机会价值分,优先级
+B01,C2,AI智能体在多领域的应用与发展,智能体编排,其他,85.76,1
+B01,C1,AI编程与智能体的使用实践及挑战,智能体编排,其他,54.26,2
+B01,C10,Emu Concept – Make AI Follows Your Rules. (Feed…,智能体编排,其他,27.48,3
+B01,C12,PostgreSQL Internals [pdf] (2023),翻译转写,其他,25.96,4
+B01,C13,Every Mac comes with an (undocumented) family m…,语义分析,其他,25.96,5
+B01,C14,Restaurant Delivery Payment-Skimming Campaign,审核审查,电商,25.96,6
+B01,C3,Idea to reduce AI token use at large orgs,自动化流程,其他,24.43,7
+B01,C8,What is the best LLM for turbo charging code?,推荐系统,其他,24.0,8
+B01,C11,Show HN: The Public Eye – Agentic search for co…,知识检索,政务,23.84,9
+B01,C4,What is your AI era PowerPoint alternative?,文本生成,其他,23.41,10
+B01,C5,Ask HN: Airbnbs with AI Photos,图像识别,旅游,22.82,11
+B01,C9,Ask HN: Organize and Cleanup iCloud Photos Usin…,图像识别,其他,22.81,12
+B01,C6,How to process incoming call audio on Android /…,语音处理,通信,22.39,13
+B01,C7,Latency reduction for consumer facing AI applic…,多模态融合,其他,21.79,14

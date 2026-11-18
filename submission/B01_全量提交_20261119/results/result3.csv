@@ -1,0 +1,15 @@
+﻿采集批次号,主题簇编号,主题簇名称,功能类别,所属行业,簇内机会记录数,来源覆盖,簇内机会记录
+B01,C2,AI智能体在多领域的应用与发展,智能体编排,其他,22,GitHub、V2EX、量子位,S00240；S01989；S02020；S02087；S02129；S02152；S02173；S02176；S02296；S02302；S02315；S02330；S02359；S02381；S02394；S02400；S02419；S02435；S02498；S02517；S02526；S02531
+B01,C1,AI编程与智能体的使用实践及挑战,智能体编排,其他,66,Hacker News,S00388；S00400；S00481；S00485；S00544；S00567；S00593；S00612；S00618；S00622；S00662；S00671；S00678；S00686；S00741；S00769；S00777；S00785；S00787；S00822；S00841；S00847；S00903；S00934；S00969；S00984；S00985；S01017；S01026；S01027；S01046；S01063；S01066；S01084；S01092；S01098；S01126；S01143；S01170；S01217；S01252；S01318；S01322；S01361；S01364；S01382；S01393；S01408；S01435；S01440；S01442；S01447；S01448；S01455；S01456；S01459；S01468；S01472；S01547；S01566；S01603；S01610；S01617；S01622；S01625；S01635
+B01,C10,Emu Concept – Make AI Follows Your Rules. (Feed…,智能体编排,其他,1,Hacker News,S01370
+B01,C12,PostgreSQL Internals [pdf] (2023),翻译转写,其他,1,Hacker News,S01768
+B01,C13,Every Mac comes with an (undocumented) family m…,语义分析,其他,1,Hacker News,S01817
+B01,C14,Restaurant Delivery Payment-Skimming Campaign,审核审查,电商,1,Hacker News,S01845
+B01,C3,Idea to reduce AI token use at large orgs,自动化流程,其他,1,Hacker News,S00537
+B01,C8,What is the best LLM for turbo charging code?,推荐系统,其他,1,Hacker News,S01123
+B01,C11,Show HN: The Public Eye – Agentic search for co…,知识检索,政务,1,Hacker News,S01585
+B01,C4,What is your AI era PowerPoint alternative?,文本生成,其他,1,Hacker News,S00713
+B01,C5,Ask HN: Airbnbs with AI Photos,图像识别,旅游,1,Hacker News,S00759
+B01,C9,Ask HN: Organize and Cleanup iCloud Photos Usin…,图像识别,其他,1,Hacker News,S01175
+B01,C6,How to process incoming call audio on Android /…,语音处理,通信,1,Hacker News,S00921
+B01,C7,Latency reduction for consumer facing AI applic…,多模态融合,其他,1,Hacker News,S01101

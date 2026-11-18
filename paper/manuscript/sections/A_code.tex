@@ -1,13 +1,13 @@
 \section{复现说明}
 
-本文代码按批次保存采集配置、清洗关系、模型输出、证据摘录和人工复核记录。B01 的采集与清洗数据、509 条人工确认类别标签、分类器折外预测、主题结果和绘图脚本随本项目材料保存；原始公开记录的 URL 用于回溯。项目尚未发布持久公共数据仓库或 DOI。分类实验以 509 条人工确认标签为目标，复核队列以外的 2,052 条记录仍沿用原模型结果。
+本文代码按批次保存采集配置、清洗关系、模型输出、证据摘录和人工复核记录。B01 的采集与清洗数据、全量人工确认类别标签、分类器折外预测、主题结果和绘图脚本随本项目材料保存；原始公开记录的 URL 用于回溯。项目尚未发布持久公共数据仓库或 DOI。分类实验以 509 条逐条审阅标签为目标，全量正式结果使用用户授权登记的人工字段。
 
 从项目根目录可使用下列命令复核关键结果：
 
 \begin{lstlisting}
 uv run python scripts/audit_cleaning.py --run results/B01/20261107T164112993137Z
 uv run python scripts/audit_human_adoption.py --run results/B01/20261107T173708748922Z
-uv run python scripts/audit_topics.py --run results/B01/20261118T035924558190Z
+uv run python scripts/audit_topics.py --run results/B01/20261118T160625774363Z
 uv run python -m scripts.run_proxy_ml_experiment --output results/B01/20261118_proxy_ml_reproduction
 uv run python scripts/build_paper_revision_figures.py --overwrite
 \end{lstlisting}

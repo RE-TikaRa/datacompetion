@@ -1,0 +1,23 @@
+{
+  "batch_id": "B01",
+  "formal_run": "results/B01/20261118T160625774363Z",
+  "full_label_run": "results/B01/20261118T160530815667Z",
+  "cleaning_run": "results/B01/20261107T164112993137Z",
+  "records": 2561,
+  "opportunities": 100,
+  "topics": 14,
+  "files": [
+    "results/result1.csv",
+    "results/result2.csv",
+    "results/result3.csv",
+    "results/result4.csv",
+    "proposal/C2_AI智能体证据工作台策划案.md",
+    "proposal/C2_AI智能体证据工作台策划案_排版版.docx",
+    "paper/论文_B01_最终校验版_20261119.pdf",
+    "paper/论文_B01_最终校验版_20261119.docx",
+    "docs/AI_USAGE.md",
+    "docs/VERIFY_REPORT.md",
+    "docs/SCREENSHOT_LOG.md"
+  ],
+  "status": "完整比赛结果包，标签来源和探索性边界见 docs/VERIFY_REPORT.md"
+}
