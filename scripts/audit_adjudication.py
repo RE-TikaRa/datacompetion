@@ -9,6 +9,7 @@ from typing import cast
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from opportunity.files import ROOT, read_json, read_jsonl
 from opportunity.judging import exact_source_quote
+from opportunity.review_adoption import adoption_errors
 
 parser = argparse.ArgumentParser(description="检查 AI 裁定代理复核结果。")
 parser.add_argument("--run", required=True, type=Path)
@@ -24,6 +25,8 @@ queue = read_jsonl(review / "review_queue.jsonl")
 adjudicated = read_jsonl(output / "assistant_adjudication.jsonl")
 proxy = read_jsonl(output / "assistant_review_proxy.jsonl")
 summary = read_json(output / "assistant_adjudication_summary.json")
+adoption_path = review / "human_adoption.json"
+adoption = read_json(adoption_path) if adoption_path.exists() else None
 with (review / "review_comparison_blind/triage.csv").open(
     encoding="utf-8-sig", newline=""
 ) as stream:
@@ -92,34 +95,33 @@ for item in proxy:
     text = (ROOT / source["content_path"]).read_text(encoding="utf-8")
     if any(exact_source_quote(quote, text) is None for quote in item["evidence"]):
         errors.append(f"代理复核证据不在正文中：{record_id}")
-for row in queue:
-    if (
-        row["human_is_opportunity"] is not None
-        or row["human_functional_category"]
-        or row["human_industry"]
-        or row["human_notes"]
-        or row["review_status"] != "待人工复核"
-    ):
-        errors.append(f"原人工队列被改写：{row['record_id']}")
+if adoption is None:
+    for row in queue:
+        if (
+            row["human_is_opportunity"] is not None
+            or row["human_functional_category"]
+            or row["human_industry"]
+            or row["human_notes"]
+            or row["review_status"] != "待人工复核"
+        ):
+            errors.append(f"原人工队列被改写：{row['record_id']}")
+else:
+    errors.extend(adoption_errors(queue, proxy, adoption))
 if summary["review_records"] != len(queue):
     errors.append("代理复核摘要数量与队列不一致。")
 if summary["adjudicated_disputed_records"] != len(triage_ids):
     errors.append("AI 裁定摘要数量与真人优先清单不一致。")
-if summary["human_truth_status"] != "未形成人工真值":
+if adoption is None and summary["human_truth_status"] != "未形成人工真值":
     errors.append("代理复核摘要没有说明仍缺少人工真值。")
 result = {
     "queue_records": len(queue),
     "adjudicated_records": len(adjudicated),
     "proxy_records": len(proxy),
     "proxy_opportunities": sum(item["is_opportunity"] for item in proxy),
-    "human_queue_untouched": not any(
-        row["human_is_opportunity"] is not None
-        or row["human_functional_category"]
-        or row["human_industry"]
-        or row["human_notes"]
-        or row["review_status"] != "待人工复核"
-        for row in queue
+    "human_adoption_status": (
+        "user reviewed and adopted proxy labels" if adoption else "pending"
     ),
+    "human_adopted_records": adoption["reviewed_records"] if adoption else 0,
     "errors": errors,
 }
 print(json.dumps(result, ensure_ascii=False, indent=2))

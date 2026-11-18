@@ -1,6 +1,6 @@
 # 项目细则与当前进度
 
-更新时间：2026-11-09。项目目录为 `C:/Users/Tika/Desktop/datacompetion`，分支为 `main`。本地提交状态和最新提交号请用 `git status --short --branch` 与 `git log -1 --oneline` 查看；改动只在本机，没有推送远程。
+更新时间：2026-11-18。项目目录为 `C:/Users/Tika/Desktop/datacompetion`，分支为 `main`。本地提交状态和最新提交号请用 `git status --short --branch` 与 `git log -1 --oneline` 查看；改动只在本机，没有推送远程。
 
 这份文档是项目导航和进度记录。README 负责快速入口，本文件负责说明目录职责、数据流、运行结果、验证方式、交付状态和剩余工作。`results/`、`data/raw/`、`data/processed/`、`data/models/` 等目录被 `.gitignore` 忽略，但它们仍然存在于本机，是当前研究结果的主要存储位置。
 
@@ -28,14 +28,14 @@
 | B01 公开数据采集 | 已完成 | 5 个公开来源，原始相关记录 2,601 条 |
 | B01 清洗与 `result1` | 已完成 | 最终清洗记录 2,561 条，正文快照和去重关系完整 |
 | 全量自动机会判别 | 已完成 | 覆盖 2,561 条，原模型候选机会 269 条 |
-| 真人复核队列 | 已有入口 | 已生成 509 条队列，真人字段仍为空 |
-| AI 辅助复核与裁定 | 已完成候选流程 | 509 条代理复核，100 条 AI 代理机会；不能替代人工真值 |
-| 语义聚类与价值评分 | 已完成候选流程 | 14 个代理主题，12 个单记录主题，轮廓系数 0.2039439 |
-| 正式 `result2` | 未完成 | 当前全量文件是原模型判断，正式人工版仍待标签确认 |
-| 正式 `result3`、`result4` | 未完成 | 当前只有代理候选 `proxy_result3.csv`、`proxy_result4.csv` |
+| 人工复核 | 已完成样本复核 | 用户确认 509 条材料，100 条机会与 409 条非机会；人工备注为空 |
+| 模型辅助复核与裁定 | 已完成辅助过程 | 辅助结果保存在独立文件，人工字段只保存用户确认类别 |
+| 语义聚类与价值评分 | 已完成样本流程 | 14 个人工确认主题，12 个单记录主题，轮廓系数 0.2039439 |
+| 混合标签 `result2` | 已生成 | 509 条采用人工标签，2,052 条沿用原模型；未复核记录仍需确认 |
+| 样本 `result3`、`result4` | 已生成 | `human_reviewed_result3.csv`、`human_reviewed_result4.csv`；正式模式仍要求全量人工标签 |
 | 复核工作台 | 代码已完成 | FastAPI、本地页面、角色权限和标签校验已实现，当前没有运行服务 |
-| 论文 Word/PDF | 探索性版本已完成 | 当前交付为“校对版”，不等同于完整比赛材料 |
-| 完整比赛提交包 | 未完成 | 真人真值、正式 CSV、完整策划案和全流程截图仍缺 |
+| 论文 Word/PDF | 探索性修订版已验收 | 增加分类器嵌套验证、来源留出、图表和文献；新旧版分别保存 |
+| 完整比赛提交包 | 未完成 | 剩余记录人工复核、主题边界确认、完整策划案和全流程截图仍缺 |
 
 ### B01 关键数字
 
@@ -47,11 +47,11 @@
 | 最终清洗记录 | 2,561 | `results/B01/20261107T164112993137Z/result1.csv` |
 | 自动判别覆盖 | 2,561 | `results/B01/20261107T173708748922Z/judgements.jsonl` |
 | 原模型候选机会 | 269 | `results/B01/20261107T173708748922Z/result2.csv` |
-| 代理复核队列 | 509 | `results/B01/20261107T173708748922Z/review/` |
-| AI 代理机会候选 | 100 | `review/assistant_adjudication/full_batch_proxy/assistant_proxy_result2.csv` |
-| 代理主题 | 14 | `results/B01/20261108T043220466135Z/topics.json` |
+| 人工复核队列 | 509 | `results/B01/20261107T173708748922Z/review/` |
+| 人工确认机会候选 | 100 | `results/B01/20261107T173708748922Z/final/result2.csv` |
+| 人工确认主题 | 14 | `results/B01/20261118T035924558190Z/topics.json` |
 | 单记录主题 | 12 | 同上 |
-| 代理主题最高分 | C2，85.76 | `results/B01/20261108T043220466135Z/scoring.json` |
+| 人工确认主题最高分 | C2，85.76 | `results/B01/20261118T035924558190Z/scoring.json` |
 
 ## 根目录文件
 
@@ -144,18 +144,20 @@
 | --- | --- | --- |
 | `paper/manuscript/main.tex` | 唯一论文主源文件 | 当前编辑源 |
 | `paper/manuscript/sections/` | 引言、方法、数据、判别、主题、案例、结论和复现说明 | 当前编辑源 |
-| `paper/manuscript/references.tex` | 11 条正文引用和 API/模型资料 | 已核对 |
-| `paper/figures/` | 6 张 B01 图的 PNG/PDF | 已生成并进入 Git |
+| `paper/manuscript/references.tex` | 17 条论文、API 和模型资料引用 | DOI 及出版社记录已核对 |
+| `paper/figures/` | 17 张 B01 图，含 PNG、PDF 和 SVG | 由本地结果及实验输出生成 |
 | `paper/EVIDENCE_LEDGER.md` | 正文主张、证据和限制 | 已完成 |
 | `paper/RESULTS_REPORT.md` | B01 论文结果总表 | 已完成 |
 | `paper/FIGURE_STORYBOARD.md` | 图件用途、来源和解释边界 | 已完成 |
-| `paper/README.md` | 当前校对版、构建命令和结果边界 | 已完成 |
-| `paper/deliverables/*校对版*` | 当前 PDF 和 DOCX | 当前版本 |
+| `paper/README.md` | 论文源、构建方式、探索修订交付和证据边界 | 已更新 |
+| `paper/deliverables/*探索修订版_20261118*` | 新版 PDF 和 DOCX | 已完成编译与版面复核 |
+| `paper/deliverables/*最终校验版_20261118*` | 当前一致性校验后的 PDF 和 DOCX | 已完成 TeX 编译、PDF 逐页检查和 DOCX 结构检查 |
+| `paper/deliverables/*校对版_20261109*` | 旧版 PDF 和 DOCX | 保留原样 |
 | `paper/docx_render/` | Word 页面渲染预览 | 本地 QA |
 | `paper/figure-versions/` | 早期图件版本 | 本地历史，不进入 Git |
 | `paper/manuscript/docx_source/` | 早期 Word 展开文件 | 本地历史，不进入 Git |
 
-论文是探索性系统方法和 B01 案例。人工真值、正式比赛结果和完整策划案尚未完成。
+论文是探索性系统方法和 B01 案例。509 条人工确认标签已写入人工字段，另有 2,052 条保持原模型标签；全量人工真值、正式主题边界和完整策划案尚未完成。
 
 ### `reports/`
 
@@ -188,7 +190,7 @@
 
 其中 `20261107T171955877644Z` 和 `20261107T172307813709Z` 是全量判别前的试运行/探针目录，不构成 B01 完整输出。四个以 `result3.csv`、`result4.csv` 命名的中间目录同样属于历史候选；正式生成的判断依据是 `topics.json` 中记录的 `label_source` 和状态字段。
 
-`assistant_proxy_result2.csv` 混合了 509 条 AI 代理标签和 2,052 条未抽样原模型标签，不能作为正式人工 `result2.csv`。
+`assistant_proxy_result2.csv` 是人工确认前生成的历史辅助结果。当前混合标签结果位于 `results/B01/20261107T173708748922Z/final/result2.csv`，其中 509 条为人工确认标签，2,052 条沿用原模型标签。
 
 ### `scripts/`
 
@@ -245,9 +247,9 @@ data/raw/B01/
 ### 输出状态区别
 
 - 清洗 `result1.csv` 结构审计通过，可描述为 B01 清洗结果。
-- 判别运行的 `result2.csv` 覆盖全量，但 269 条是模型候选机会，尚待真人真值复核。
-- `assistant_proxy_result2.csv` 是模型代理候选，509 条由 AI 复核，2,052 条沿用原模型。
-- `proxy_result3.csv`、`proxy_result4.csv` 是代理标签下的候选主题和评分，不是正式比赛输出。
+- 判别运行的 `result2.csv` 覆盖全量，但 269 条是模型候选机会；人工确认样本另行写入 final 目录。
+- `assistant_proxy_result2.csv` 是人工确认前的历史辅助结果；当前 `final/result2.csv` 中 509 条使用人工确认标签，2,052 条沿用原模型。
+- `proxy_result3.csv`、`proxy_result4.csv` 是人工确认前的历史辅助主题结果；当前样本主题结果位于 `results/B01/20261118T035924558190Z/`，正式比赛输出仍需全量人工标签。
 
 ## 查看进度和运行检查
 
@@ -268,19 +270,20 @@ uv run pyright
 uv run pytest -q
 ```
 
-### B01 数据与代理审计
+### B01 数据与标签审计
 
 ```powershell
 uv run python scripts/audit_data.py --batch B01
 uv run python scripts/audit_cleaning.py --run results/B01/20261107T164112993137Z
 uv run python scripts/audit_judgements.py --run results/B01/20261107T173708748922Z
-uv run python scripts/audit_proxy_result2.py --run results/B01/20261107T173708748922Z
-uv run python scripts/audit_topics.py --run results/B01/20261108T043220466135Z
+uv run python scripts/audit_human_adoption.py --run results/B01/20261107T173708748922Z
+uv run python scripts/audit_topics.py --run results/B01/20261118T035924558190Z
 ```
 
 ### 论文入口
 
-- 当前 Word/PDF：`paper/deliverables/*校对版_20261109.*`
+- 新版 Word/PDF：`paper/deliverables/*探索修订版_20261118.*`
+- 旧版校对件：`paper/deliverables/*校对版_20261109.*`
 - TeX 主源：`paper/manuscript/main.tex`
 - 结果总表：`paper/RESULTS_REPORT.md`
 - 验收报告：`reports/VERIFY_REPORT.md`
@@ -288,20 +291,21 @@ uv run python scripts/audit_topics.py --run results/B01/20261108T043220466135Z
 
 ## 后续工作顺序
 
-1. 在 `results/B01/20261107T173708748922Z/review/review_queue.csv` 或本地工作台完成 509 条真人复核，并填写 `human_*` 字段。
-2. 运行 `finalize_review.py`，确认正式 `result2.csv` 覆盖与人工复核范围。
-3. 使用真人确认标签重新运行 `aggregate_topics.py`，生成正式 `result3.csv`、`result4.csv` 并复核主题边界。
+1. 保持 509 条用户审阅确认标签及其来源说明；这些标签用于人工复核样本分析。
+2. 为复核队列外 2,052 条记录开展独立标注和分层评价，再确定正式比赛标签范围。
+3. 基于明确的全量标签边界重新运行 `aggregate_topics.py`，复核主题边界和评分。
 4. 完整实现或整理立项策划案导出，并补充赛题要求的全流程截图、匿名材料和部署成本说明。
-5. 更新论文数字与图表，重新验收后制作比赛提交包。
+5. 完成全量标签来源说明、主题边界确认和策划案材料后，更新论文并制作比赛提交包。
 
 ## 适用边界
 
 - B01 来自公开 API、RSS 和有限分页，不代表 5 个网站的完整 90 日语料。
 - `body` 是采集字段类型，不保证正文完整。
 - 模型 confidence 是模型自评值，尚未进行概率校准。
-- 两轮 AI 辅助复核和 AI 裁定使用同一 Codex 模型，不构成人工真值。
+- 509 条复核材料经过用户阅读并确认，类别写入人工字段、备注为空；队列之外的记录仍沿用原模型标签。
+- 队列之外 2,052 条记录仍采用原模型判断，分类器比较只说明对 509 条采纳标签的复现程度。
 - 240 条负例按来源、正文类型和置信度定向抽取，不能无偏估计全量负例漏判率。
 - 缺少互动数据时保留缺失，不填为零；没有配置服务价格时 token 成本未知。
 - 复核工作台代码已实现，但未运行常驻服务或完成浏览器实操验收。
 - 论文属于探索性案例，C2 框架不是已确认的用户需求、市场规模或产品效果。
-- 最新校对版使用 Tectonic 的 XeTeX 引擎编译；`paper/manuscript/main.pdf` 是首次编译误写入的早期文件，不代表当前论文版面。
+- 2026-11-18 新版使用 Tectonic 的 XeTeX 引擎编译；`paper/manuscript/main.pdf` 是历史编译文件，不代表当前新版版面。

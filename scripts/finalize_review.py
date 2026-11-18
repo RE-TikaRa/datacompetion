@@ -1,4 +1,5 @@
 import argparse
+import csv
 import json
 import sys
 from io import TextIOWrapper
@@ -14,6 +15,7 @@ from opportunity.files import (
     write_json,
     write_jsonl,
 )
+from opportunity.review_adoption import adoption_errors
 
 
 def finalize(run: Path, root: Path = ROOT) -> Path:
@@ -24,6 +26,17 @@ def finalize(run: Path, root: Path = ROOT) -> Path:
     if not review_path.exists():
         raise ValueError("找不到人工复核队列。")
     reviewed_rows = read_jsonl(review_path)
+    adoption_path = review_path.parent / "human_adoption.json"
+    adoption = read_json(adoption_path) if adoption_path.exists() else None
+    if adoption is not None:
+        proxy_rows = read_jsonl(
+            review_path.parent
+            / "assistant_adjudication"
+            / "assistant_review_proxy.jsonl"
+        )
+        adoption_issues = adoption_errors(reviewed_rows, proxy_rows, adoption)
+        if adoption_issues:
+            raise ValueError("；".join(adoption_issues[:5]))
     labels = read_json(root / "data/reference/labels.json")
     functions = set(labels["functions"])
     industries = set(labels["industries"])
@@ -67,6 +80,7 @@ def finalize(run: Path, root: Path = ROOT) -> Path:
                     "human_industry": "",
                     "human_notes": "",
                     "review_status": "模型标签待复核",
+                    "label_source": "original_model_not_sampled",
                 }
             )
             continue
@@ -79,6 +93,7 @@ def finalize(run: Path, root: Path = ROOT) -> Path:
                 "industry": review_row["human_industry"],
                 "human_notes": review_row["human_notes"],
                 "review_status": "人工已复核",
+                "label_source": "human_label",
             }
         )
     output = run / "final"
@@ -93,7 +108,7 @@ def finalize(run: Path, root: Path = ROOT) -> Path:
     ]
     csv_rows = [
         [
-            row["batch_id"],
+            row.get("batch_id") or manifest.get("batch_id", ""),
             row["record_id"],
             int(row["is_opportunity"]),
             row["confidence"],
@@ -102,28 +117,57 @@ def finalize(run: Path, root: Path = ROOT) -> Path:
         ]
         for row in rows
     ]
-    write_csv(output / "result2.csv", columns, csv_rows)
-    write_jsonl(output / "final_judgements.jsonl", rows)
-    write_json(
-        output / "final_review.json",
-        {
-            "batch_id": rows[0]["batch_id"] if rows else None,
-            "records": len(rows),
-            "opportunities": sum(row["is_opportunity"] is True for row in rows),
-            "human_reviewed_records": len(human_reviewed),
-            "human_opportunities": sum(
-                row["human_is_opportunity"] is True for row in human_reviewed
-            ),
-            "human_non_opportunities": sum(
-                row["human_is_opportunity"] is False for row in human_reviewed
-            ),
-            "model_labels_not_reviewed": len(rows) - len(human_reviewed),
-            "confidence_source": (
-                "模型自评置信度，未进行概率校准；人工复核只覆盖人工复核清单中的记录"
-            ),
-            "review_status": "人工复核样本已合并，其余标签待复核",
-        },
-    )
+    result2_path = output / "result2.csv"
+    if result2_path.exists():
+        with result2_path.open(encoding="utf-8-sig", newline="") as stream:
+            existing_result2 = list(csv.reader(stream))
+        expected_result2 = [
+            columns,
+            *[[str(value) for value in row] for row in csv_rows],
+        ]
+        if existing_result2 != expected_result2:
+            raise ValueError("已有 final/result2.csv 与本次人工确认结果不一致。")
+    else:
+        write_csv(result2_path, columns, csv_rows)
+    final_judgements_path = output / "final_judgements.jsonl"
+    if final_judgements_path.exists():
+        if read_jsonl(final_judgements_path) != rows:
+            raise ValueError(
+                "已有 final/final_judgements.jsonl 与本次人工确认结果不一致。"
+            )
+    else:
+        write_jsonl(final_judgements_path, rows)
+    final_review = {
+        "batch_id": rows[0].get("batch_id") if rows else None,
+        "records": len(rows),
+        "opportunities": sum(row["is_opportunity"] is True for row in rows),
+        "human_reviewed_records": len(human_reviewed),
+        "human_opportunities": sum(
+            row["human_is_opportunity"] is True for row in human_reviewed
+        ),
+        "human_non_opportunities": sum(
+            row["human_is_opportunity"] is False for row in human_reviewed
+        ),
+        "model_labels_not_reviewed": len(rows) - len(human_reviewed),
+        "confidence_source": (
+            "模型自评置信度，未进行概率校准；人工复核只覆盖人工复核清单中的记录"
+        ),
+        "human_label_origin": (
+            adoption["label_origin"]
+            if adoption is not None
+            else "independent human review"
+        ),
+        "independent_human_annotation": (
+            adoption["independent_human_annotation"] if adoption is not None else True
+        ),
+        "review_status": "人工复核样本已合并，其余标签待复核",
+    }
+    final_review_path = output / "final_review.json"
+    if final_review_path.exists():
+        if read_json(final_review_path) != final_review:
+            raise ValueError("已有 final/final_review.json 与本次人工确认结果不一致。")
+    else:
+        write_json(final_review_path, final_review)
     return output
 
 

@@ -28,7 +28,7 @@ parser.add_argument("--judgement-file", type=Path)
 parser.add_argument("--formal", action="store_true")
 parser.add_argument(
     "--label-source",
-    choices=("model", "assistant-proxy", "human"),
+    choices=("model", "assistant-proxy", "human", "human-reviewed"),
     default="model",
 )
 args = parser.parse_args()
@@ -90,6 +90,7 @@ status_by_source = {
     "model": "候选结果，基于待复核模型机会标签",
     "assistant-proxy": "AI代理复核候选结果，待真人确认",
     "human": "正式结果",
+    "human-reviewed": "人工复核样本候选结果，未复核记录保留原模型标签",
 }
 status = status_by_source[label_source]
 quality["review_status"] = status
@@ -134,7 +135,11 @@ result3_name, result4_name = (
     else (
         ("proxy_result3.csv", "proxy_result4.csv")
         if label_source == "assistant-proxy"
-        else ("candidate_result3.csv", "candidate_result4.csv")
+        else (
+            ("human_reviewed_result3.csv", "human_reviewed_result4.csv")
+            if label_source == "human-reviewed"
+            else ("candidate_result3.csv", "candidate_result4.csv")
+        )
     )
 )
 write_csv(output / result3_name, columns3, result3_rows)

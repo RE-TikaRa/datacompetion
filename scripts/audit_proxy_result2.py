@@ -8,6 +8,7 @@ from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from opportunity.files import ROOT, read_json, read_jsonl
+from opportunity.review_adoption import adoption_errors
 
 parser = argparse.ArgumentParser(description="审计 AI 代理候选 result2 的来源和覆盖。")
 parser.add_argument("--run", required=True, type=Path)
@@ -28,6 +29,8 @@ if not all(path.is_file() for path in required):
 model = read_jsonl(run / "judgements.jsonl")
 proxy = read_jsonl(run / "review/assistant_adjudication/assistant_review_proxy.jsonl")
 review_queue = read_jsonl(run / "review/review_queue.jsonl")
+adoption_path = run / "review/human_adoption.json"
+adoption = read_json(adoption_path) if adoption_path.exists() else None
 merged = read_jsonl(output / "assistant_proxy_judgements.jsonl")
 summary = read_json(output / "assistant_proxy_summary.json")
 labels = read_json(ROOT / "data/reference/labels.json")
@@ -44,15 +47,18 @@ merged_by_id = {row["record_id"]: row for row in merged}
 errors = []
 if set(proxy_by_id) != set(queue_by_id):
     errors.append("代理复核编号与原复核队列不一致。")
-if any(
-    row["human_is_opportunity"] is not None
-    or row["human_functional_category"]
-    or row["human_industry"]
-    or row["human_notes"]
-    or row["review_status"] != "待人工复核"
-    for row in review_queue
-):
-    errors.append("原人工复核队列被改写。")
+if adoption is None:
+    if any(
+        row["human_is_opportunity"] is not None
+        or row["human_functional_category"]
+        or row["human_industry"]
+        or row["human_notes"]
+        or row["review_status"] != "待人工复核"
+        for row in review_queue
+    ):
+        errors.append("复核队列包含未记录来源的人工字段。")
+else:
+    errors.extend(adoption_errors(review_queue, proxy, adoption))
 if len(merged) != len(model) or set(merged_by_id) != set(model_by_id):
     errors.append("代理候选 result2 没有完整覆盖原模型结果。")
 if len(csv_rows) != len(merged) or {row["记录编号"] for row in csv_rows} != set(
@@ -89,13 +95,17 @@ for record_id, row in merged_by_id.items():
         errors.append(f"CSV 标签与 JSONL 不一致：{record_id}")
 if summary["records"] != len(model):
     errors.append("代理结果摘要记录数不一致。")
-if summary["human_truth_status"] != "未形成人工真值":
+if adoption is None and summary["human_truth_status"] != "未形成人工真值":
     errors.append("代理结果没有标明缺少人工真值。")
 result = {
     "records": len(merged),
     "ai_proxy_reviewed_records": len(proxy),
     "original_model_labels_not_sampled": len(merged) - len(proxy),
     "ai_proxy_opportunities": sum(row["is_opportunity"] for row in proxy),
+    "human_adopted_records": adoption["reviewed_records"] if adoption else 0,
+    "ai_suggestion_text_copied_to_human_notes": (
+        adoption["ai_suggestion_text_copied_to_human_notes"] if adoption else False
+    ),
     "errors": errors,
 }
 print(json.dumps(result, ensure_ascii=False, indent=2))

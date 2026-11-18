@@ -10,6 +10,7 @@ from typing import cast
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from opportunity.files import ROOT, read_json, read_jsonl
 from opportunity.judging import exact_source_quote
+from opportunity.review_adoption import adoption_errors
 
 parser = argparse.ArgumentParser(description="检查 AI 辅助复核结果和原人工队列。")
 parser.add_argument("--run", required=True, type=Path)
@@ -27,6 +28,13 @@ queue = read_jsonl(review / "review_queue.jsonl")
 items = read_jsonl(output / "assistant_review.jsonl")
 summary = read_json(output / "assistant_review_summary.json")
 attention = read_json(output / "human_attention_summary.json")
+adoption_path = review / "human_adoption.json"
+adoption = read_json(adoption_path) if adoption_path.exists() else None
+adoption_proxy = (
+    read_jsonl(review / "assistant_adjudication" / "assistant_review_proxy.jsonl")
+    if adoption is not None
+    else []
+)
 with (output / "assistant_review.csv").open(encoding="utf-8-sig", newline="") as stream:
     csv_rows = list(csv.DictReader(stream))
 with (output / "human_attention.csv").open(encoding="utf-8-sig", newline="") as stream:
@@ -55,15 +63,18 @@ if args.blind and job.get("record_fields") != [
     errors.append("盲复核输入字段包含了不允许的内容。")
 if summary.get("review_mode") not in allowed_job_modes:
     errors.append("复核摘要中的运行模式不一致。")
-for row in queue:
-    if (
-        row["human_is_opportunity"] is not None
-        or row["human_functional_category"]
-        or row["human_industry"]
-        or row["human_notes"]
-        or row["review_status"] != "待人工复核"
-    ):
-        errors.append(f"原人工队列已被 AI 辅助复核改写：{row['record_id']}")
+if adoption is None:
+    for row in queue:
+        if (
+            row["human_is_opportunity"] is not None
+            or row["human_functional_category"]
+            or row["human_industry"]
+            or row["human_notes"]
+            or row["review_status"] != "待人工复核"
+        ):
+            errors.append(f"原人工队列已被 AI 辅助复核改写：{row['record_id']}")
+else:
+    errors.extend(adoption_errors(queue, adoption_proxy, adoption))
 for item in items:
     record_id = item["record_id"]
     queue_row = queue_by_id.get(record_id)
@@ -113,14 +124,10 @@ result = {
     "boundary_records": sum(item["boundary_case"] for item in items),
     "human_attention_records": len(attention_rows),
     "source_counts": dict(Counter(row["source_name"] for row in queue)),
-    "human_queue_untouched": not any(
-        row["human_is_opportunity"] is not None
-        or row["human_functional_category"]
-        or row["human_industry"]
-        or row["human_notes"]
-        or row["review_status"] != "待人工复核"
-        for row in queue
+    "human_adoption_status": (
+        "user reviewed and adopted proxy labels" if adoption else "pending"
     ),
+    "human_adopted_records": adoption["reviewed_records"] if adoption else 0,
     "errors": errors,
 }
 print(json.dumps(result, ensure_ascii=False, indent=2))

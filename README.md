@@ -10,11 +10,11 @@
 | --- | --- |
 | B01 采集与清洗 | 完成，2,561 条清洗记录 |
 | 全量自动判别 | 完成，2,561 条覆盖，269 条模型候选机会 |
-| AI 代理复核 | 完成候选流程，509 条队列，100 条代理机会 |
-| 代理主题与评分 | 完成候选流程，14 个主题，C2 为 85.76 分 |
+| 人工复核 | 已完成 509 条，100 条人工确认机会，人工备注为空 |
+| 人工确认主题与评分 | 已完成样本候选流程，14 个主题，C2 为 85.76 分 |
 | 复核工作台 | 代码和测试完成，当前没有启动服务 |
-| 论文 Word/PDF | 探索性校对版已生成并验收 |
-| 真人真值与正式 `result2/result3/result4` | 未完成 |
+| 论文 Word/PDF | 2026-11-18 最终校验版已构建；PDF 逐页检查、DOCX 结构检查完成 |
+| 剩余记录人工复核与全量主题结果 | 未完成；2,052 条仍沿用原模型标签 |
 | 完整比赛提交包 | 未完成 |
 
 ## 任务关系
@@ -81,11 +81,16 @@ uv run python scripts/audit_adjudication.py --run results/B01/20261107T173708748
 uv run python scripts/build_proxy_result2.py --run results/B01/20261107T173708748922Z
 uv run python scripts/audit_proxy_result2.py --run results/B01/20261107T173708748922Z
 uv run python scripts/aggregate_topics.py --cleaning-run results/B01/20261107T164112993137Z --judgement-run results/B01/20261107T173708748922Z --judgement-file review/assistant_adjudication/full_batch_proxy/assistant_proxy_judgements.jsonl --label-source assistant-proxy
+uv run python scripts/convert_adopted_labels_to_human.py --run results/B01/20261107T173708748922Z
+uv run python scripts/audit_human_adoption.py --run results/B01/20261107T173708748922Z
+uv run python scripts/aggregate_topics.py --cleaning-run results/B01/20261107T164112993137Z --judgement-run results/B01/20261107T173708748922Z --judgement-file final/final_judgements.jsonl --label-source human-reviewed
 ```
 
 `--keywords` 指定需求关键词，`--direction` 写入批次说明；只有命中关键词的记录会进入该需求的清洗结果。未指定 `--reference-date` 时按当前北京时间向前检索 90 天。每次采集使用新的批次号，已有批次不会覆盖。
 
 `clean` 从该批次采集字段生成新的独立运行目录，包含官方表头 `result1.csv`、正文快照、来源关联和清洗报告。
+
+前两条 `assistant-proxy` 命令只用于复现历史辅助结果；当前论文使用人工确认字段和 `human-reviewed` 样本主题输出。
 
 ```powershell
 ruff format

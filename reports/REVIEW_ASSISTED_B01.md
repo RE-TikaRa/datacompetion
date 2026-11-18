@@ -46,7 +46,7 @@
 - `human_attention_summary.json`：真人优先查看清单的统计。
 - `batches/`：每个成功批次的可恢复检查点。
 
-原 `review_queue.jsonl`、`review_queue.csv` 中的 `human_*` 字段保持空白，审计结果为 `human_queue_untouched=true`。
+截至 2026-11-18，用户已阅读 509 条复核材料并采纳类别标签。人工字段只保存机会判断及相应功能、行业类别，人工备注为空；AI 复核意见保存在独立模型输出中。采纳记录见 `review/human_adoption.json`，审计入口为 `scripts/audit_human_adoption.py`。该过程不是独立盲标，队列之外的 2,052 条记录仍沿用原模型标签。
 
 盲复核结果保存在同级的 `assistant_review_blind/`，它只接收记录编号、来源、正文类型、标题和正文摘要，不接收原模型判断或第一轮辅助判断。盲复核判断为机会 109 条，边界记录 170 条，按盲复核结果筛出的真人优先查看记录 270 条。
 

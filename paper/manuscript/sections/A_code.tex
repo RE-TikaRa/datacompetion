@@ -1,3 +1,15 @@
 \section{复现说明}
 
-本文代码按批次保存采集配置、清洗关系、模型输出、证据摘录和代理裁定。主要复现入口包括数据清洗审计、全量判别审计、代理结果审计和主题结果审计；具体命令、输入运行目录和依赖版本随项目说明及运行报告提供。
+本文代码按批次保存采集配置、清洗关系、模型输出、证据摘录和人工复核记录。B01 的采集与清洗数据、509 条人工确认类别标签、分类器折外预测、主题结果和绘图脚本随本项目材料保存；原始公开记录的 URL 用于回溯。项目尚未发布持久公共数据仓库或 DOI。分类实验以 509 条人工确认标签为目标，复核队列以外的 2,052 条记录仍沿用原模型结果。
+
+从项目根目录可使用下列命令复核关键结果：
+
+\begin{lstlisting}
+uv run python scripts/audit_cleaning.py --run results/B01/20261107T164112993137Z
+uv run python scripts/audit_human_adoption.py --run results/B01/20261107T173708748922Z
+uv run python scripts/audit_topics.py --run results/B01/20261118T035924558190Z
+uv run python -m scripts.run_proxy_ml_experiment --output results/B01/20261118_proxy_ml_reproduction
+uv run python scripts/build_paper_revision_figures.py --overwrite
+\end{lstlisting}
+
+分类器比较采用固定版本的 multilingual-e5-small 编码器和嵌套交叉验证。运行元数据、分折指标、参数选择、折外预测与来源留出结果均保存在实验输出目录；相关版本、抽样边界和评价定义见方法与结果部分。

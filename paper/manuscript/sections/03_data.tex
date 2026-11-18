@@ -32,4 +32,22 @@ B01 的需求方向为综合 AI 应用机会，覆盖多个行业。时间窗为
 
 采集阶段正文类型包括 \texttt{body} 类型记录 1,796 条、仅标题 396 条、项目简介 274 条、订阅正文 70 条和 README 25 条。\texttt{body} 是采集字段类型，不等同于每条记录都具备完整正文。近重复候选只对足够长的正文进行比较，标题与短文本不因语义相似而自动合并。个人信息清理基于邮箱、电话、IP 和用户名格式识别，无法覆盖所有自然语言线索；因此正文快照保存在本地，公开引用仍以原始来源链接为准。
 
+图~\ref{fig:weekly-sources} 按发布周展示来源记录覆盖，便于区分持续覆盖和单周集中返回。最后一组覆盖至 11 月 7 日，为不完整自然周；Hacker News 的记录量整体较大，资讯与订阅来源的时间分布则受接口历史覆盖范围限制。该图报告的是本批次采集记录，不表示来源平台的实际发帖量。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\textwidth]{../figures/fig07_weekly_source_heatmap.pdf}
+  \caption{B01 清洗记录的来源与发布周分布。最后一组是截至 2026 年 11 月 7 日的不完整周，计数描述采集样本。}
+  \label{fig:weekly-sources}
+\end{figure}
+
+不同来源的内容质量标记比例见图~\ref{fig:source-quality}。量子位、V2EX 和 IT 之家记录中热度字段缺失较多；GitHub 则有较高比例的简介型记录。各项比例以来源记录数为分母，缺失热度没有替换为零，质量标记也不会直接改写机会标签。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{../figures/fig08_source_quality_heatmap.pdf}
+  \caption{来源内部的正文不完整、短文本和缺少热度比例；括号内为对应记录数。一个记录可同时命中多种质量标记。}
+  \label{fig:source-quality}
+\end{figure}
+
 质量标记不直接改变机会标签；缺失的互动数据也不填为零。后续互动维度仅对实际可用的平台计数进行来源内归一化，以保留不同网站统计单位之间的差异。
