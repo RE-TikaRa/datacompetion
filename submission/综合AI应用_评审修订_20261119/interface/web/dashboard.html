@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 应用机会决策看板</title>
+  <link rel="stylesheet" href="/assets/dashboard.css">
+</head>
+<body>
+  <header class="dashboard-header">
+    <div>
+      <p class="eyebrow">AI APPLICATION OPPORTUNITY SYSTEM</p>
+      <h1>综合 AI 应用机会决策看板</h1>
+      <p class="subtitle">从公开记录到多源热点、价值排序与立项策划案</p>
+    </div>
+    <div class="header-actions">
+      <span id="run-id" class="run-id"></span>
+      <a class="ghost-button" href="/">复核工作台</a>
+    </div>
+  </header>
+
+  <main class="dashboard-shell">
+    <section class="metric-grid" id="metrics" aria-label="核心指标"></section>
+
+    <section class="hero-grid">
+      <article class="panel hotspot-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">MULTI-SOURCE SIGNAL</p>
+            <h2>多源热点</h2>
+          </div>
+          <span id="hotspot-count" class="badge badge-blue"></span>
+        </div>
+        <div id="hotspot-content" class="hotspot-content"></div>
+      </article>
+      <article class="panel decision-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">DECISION OUTPUT</p>
+            <h2>决策产出</h2>
+          </div>
+          <span class="badge badge-green">可下载</span>
+        </div>
+        <p>针对优先主题生成的策划案包含目标用户、痛点、功能、技术路线、实施安排、评价指标和风险控制。</p>
+        <div class="download-actions">
+          <a class="primary-button" href="/api/dashboard/proposal/docx">下载 Word 策划案</a>
+          <a class="secondary-button" href="/api/dashboard/proposal/markdown">查看 Markdown</a>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel ranking-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">VALUE RANKING</p>
+          <h2>主题优先级</h2>
+        </div>
+        <p class="panel-note">四维评分：多源指向、记录规模、互动信号、时间新近性</p>
+      </div>
+      <div id="ranking" class="ranking-list"></div>
+    </section>
+
+    <section class="detail-grid">
+      <article class="panel detail-panel" id="topic-detail">
+        <p class="empty-state">点击主题查看评分维度和来源覆盖。</p>
+      </article>
+      <article class="panel methodology-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">EVIDENCE BOUNDARY</p>
+            <h2>证据边界</h2>
+          </div>
+        </div>
+        <ul>
+          <li>多源热点要求至少覆盖两个来源网站。</li>
+          <li>单源大规模主题保留为对照，不替代多源共同指向。</li>
+          <li>价值分用于当前数据批次内的应用验证排序。</li>
+          <li>策划案是立项评估输入，仍需用户访谈和试点验证。</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+  <script type="module" src="/assets/dashboard.js"></script>
+</body>
+</html>

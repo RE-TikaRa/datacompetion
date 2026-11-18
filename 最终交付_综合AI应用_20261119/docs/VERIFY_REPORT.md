@@ -19,6 +19,7 @@
 | PDF 视觉 | 通过 | 评审修订版 PDF 26 页、A4；摘要 1 页、正文 25 页，页面均已渲染并检查 |
 | Word 视觉 | 有限通过 | 旧版 Word 已完成逐页检查；当前环境缺少 `soffice`，本轮对新版执行结构检查，未生成新的 Word PDF |
 | 项目静态检查 | 通过 | Ruff format/check；pytest 35 项；清洗、人工标签和人工主题审计通过 |
+| 界面与部署 | 通过 | `/dashboard` 决策看板和 `/` 复核工作台已在本机回环地址访问；`interface/` 可运行部署单元、启动脚本和两张截图已随交付包保存 |
 
 ## 章节结构
 
@@ -46,9 +47,13 @@
 
 DOCX 从相同 TeX 正文展开生成。当前环境没有 `soffice`，因此本轮没有新的 Word PDF；`python-docx` 结构检查确认 4 张表和 17 个内嵌图，旧版 Word 的逐页检查记录仍然保留。评审修订版新增多源热点判据、阈值语义和应用端措辞，论文数字与正式 CSV 保持一致。
 
+## 界面与部署验收
+
+`interface/` 目录包含 FastAPI 后端、静态页面、正式主题与评分快照、509 条复核队列、正文快照和策划案下载文件。使用 `uv run uvicorn opportunity.web:app --host 127.0.0.1 --port 8000` 启动后，看板接口返回唯一多源热点 C2 和 81.52 分，复核接口返回 509 条已复核记录，Markdown 与 DOCX 策划案下载接口均返回 200。截图 `docs/screenshots/decision-dashboard.png` 和 `docs/screenshots/reviewer-detail.png` 对应本地页面状态。
+
 ## 剩余工作
 
-1. 工作台复核员视图已在本机回环地址访问并捕获截图；决策者只读视图和匿名材料清单仍需补齐。
+1. 对外交付包中的界面和部署材料已经齐全；决策者账号在需要联网部署时按 `docs/DEPLOYMENT.md` 配置。
 2. 当前环境缺少 `soffice`，新版 Word 尚未生成新的页面级 PDF；DOCX 结构检查已通过。
 3. C2 方案是根据异质成员提出的实施方案，不是已观测的产品效果。
 4. PaperSpine 本地服务可启动，但 OpenTask 返回 internal_error，事件库没有创建论文任务；论文文件与数据仍在项目本地完成和保存。

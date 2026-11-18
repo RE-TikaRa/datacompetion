@@ -44,7 +44,10 @@ async function loadRuns() {
   const select = get("run");
   select.replaceChildren();
   for (const run of runs) {
-    const option = node("option", run.run_id);
+    const option = node(
+      "option",
+      run.run_id.includes("/") ? "正式复核数据批次" : run.run_id,
+    );
     option.value = run.run_id;
     select.append(option);
   }

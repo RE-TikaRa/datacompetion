@@ -3,6 +3,9 @@
   "records": 2561,
   "opportunities": 100,
   "topics": 14,
+  "multi_source_hotspots": [
+    "C2"
+  ],
   "files": [
     "results/result1.csv",
     "results/result2.csv",
@@ -13,8 +16,30 @@
     "proposal/C2_AI智能体证据工作台策划案.md",
     "proposal/C2_AI智能体证据工作台策划案_评审修订版_20261119.docx",
     "docs/AI_USAGE.md",
+    "docs/DEPLOYMENT.md",
     "docs/VERIFY_REPORT.md",
-    "docs/SCREENSHOT_LOG.md"
+    "docs/SCREENSHOT_LOG.md",
+    "docs/screenshots/decision-dashboard.png",
+    "docs/screenshots/reviewer-detail.png",
+    "interface/README.md",
+    "interface/pyproject.toml",
+    "interface/scripts/run_dashboard.ps1",
+    "interface/opportunity/web.py",
+    "interface/web/dashboard.html",
+    "interface/web/index.html",
+    "interface/results/正式主题结果/topics.json",
+    "interface/results/正式主题结果/scoring.json",
+    "interface/results/正式复核数据批次/review/review_queue.jsonl"
   ],
-  "status": "完整公开数据应用实践交付包"
+  "interface": {
+    "framework": "FastAPI + 静态 HTML/CSS/JavaScript",
+    "dashboard": "/dashboard",
+    "review_workbench": "/",
+    "api_docs": "/api/docs",
+    "evidence": [
+      "docs/screenshots/decision-dashboard.png",
+      "docs/screenshots/reviewer-detail.png"
+    ]
+  },
+  "status": "论文、结果、策划案、可运行界面和部署证据交付包"
 }

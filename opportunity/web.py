@@ -121,6 +121,36 @@ def _labels(root: Path) -> dict:
     return read_json(root / "data/reference/labels.json")
 
 
+def _latest_formal_run(root: Path) -> Path:
+    candidates = []
+    for path in (root / "results").glob("*/**/topics.json"):
+        try:
+            data = read_json(path)
+        except OSError, json.JSONDecodeError:
+            continue
+        if data.get("status") == "正式结果" and (path.parent / "scoring.json").exists():
+            candidates.append(path.parent)
+    if not candidates:
+        raise HTTPException(status_code=404, detail="没有找到正式主题结果。")
+    return max(candidates, key=lambda path: path.stat().st_mtime)
+
+
+def _proposal_path(root: Path, extension: str) -> Path:
+    names = [f"C2_AI智能体证据工作台策划案_评审修订版_20261119.{extension}"]
+    if extension == "md":
+        names.append("C2_AI智能体证据工作台策划案.md")
+    locations = [
+        root / "proposal",
+        root / "最终交付_综合AI应用_20261119" / "proposal",
+        root / "submission/综合AI应用_评审修订_20261119/proposal",
+    ]
+    candidates = [location / name for location in locations for name in names]
+    for path in candidates:
+        if path.exists():
+            return path
+    raise HTTPException(status_code=404, detail="策划案文件不存在。")
+
+
 def _role(request: Request, credentials: HTTPBasicCredentials | None) -> str:
     reviewer_username = os.getenv("REVIEWER_USERNAME", "")
     reviewer_password = os.getenv("REVIEWER_PASSWORD", "")
@@ -179,6 +209,60 @@ def create_app(root: Path = ROOT) -> FastAPI:
     ) -> dict:
         role = _role(request, credentials)
         return {"role": role}
+
+    @app.get("/api/dashboard")
+    def dashboard() -> dict:
+        run = _latest_formal_run(root)
+        topics_data = read_json(run / "topics.json")
+        scoring = read_json(run / "scoring.json")
+        ranked = {row["topic_id"]: row for row in scoring.get("ranking", [])}
+        topics = []
+        for topic in topics_data.get("topics", []):
+            rank = ranked.get(topic["topic_id"], {})
+            topics.append(
+                {
+                    "topic_id": topic["topic_id"],
+                    "topic_name": topic["topic_name"],
+                    "record_count": topic["record_count"],
+                    "source_count": topic["source_count"],
+                    "source_names": topic["source_names"],
+                    "dimension_scores": topic.get("dimension_scores", {}),
+                    "value_score": rank.get("value_score", topic.get("value_score")),
+                    "priority": rank.get("priority", topic.get("priority")),
+                    "is_multi_source_hotspot": topic["source_count"] >= 2,
+                }
+            )
+        topics.sort(key=lambda item: (item["priority"] or 999, item["topic_id"]))
+        return {
+            "run_id": run.relative_to(root / "results").as_posix(),
+            "display_name": "正式主题分析结果",
+            "status": topics_data.get("status"),
+            "quality": {
+                "candidate_records": topics_data["quality"].get("candidate_records"),
+                "topic_count": topics_data["quality"].get("topic_count"),
+                "noise_records": topics_data["quality"].get("noise_records"),
+                "silhouette_score": topics_data["quality"].get("silhouette_score"),
+                "multi_source_hotspot_topic_ids": topics_data["quality"].get(
+                    "multi_source_hotspot_topic_ids", []
+                ),
+            },
+            "scoring": {
+                "weights": scoring.get("scoring", {}).get("weights", {}),
+                "recency_policy": scoring.get("scoring", {}).get("recency_policy", ""),
+            },
+            "topics": topics,
+            "proposal": {
+                "markdown": "/api/dashboard/proposal/markdown",
+                "docx": "/api/dashboard/proposal/docx",
+            },
+        }
+
+    @app.get("/api/dashboard/proposal/{extension}")
+    def dashboard_proposal(extension: str) -> FileResponse:
+        if extension not in {"markdown", "docx"}:
+            raise HTTPException(status_code=404, detail="不支持的策划案格式。")
+        suffix = "md" if extension == "markdown" else "docx"
+        return FileResponse(_proposal_path(root, suffix))
 
     @app.get("/api/review/{run_id:path}")
     def review(
@@ -328,6 +412,10 @@ def create_app(root: Path = ROOT) -> FastAPI:
     @app.get("/", response_class=FileResponse)
     def index() -> FileResponse:
         return FileResponse(WEB_ROOT / "index.html")
+
+    @app.get("/dashboard", response_class=FileResponse)
+    def dashboard_page() -> FileResponse:
+        return FileResponse(WEB_ROOT / "dashboard.html")
 
     return app
 

@@ -123,3 +123,66 @@ def test_decision_maker_is_read_only_and_sees_only_aggregates(tmp_path, monkeypa
     assert "rows" not in summary.json()
     denied = client.get("/api/review/B01/run", auth=("decision", "decision-secret"))
     assert denied.status_code == 403
+
+
+def test_public_dashboard_reads_formal_topics_without_exposing_records(tmp_path):
+    formal = tmp_path / "results" / "B01" / "formal"
+    formal.mkdir(parents=True)
+    (formal / "topics.json").write_text(
+        json.dumps(
+            {
+                "status": "正式结果",
+                "quality": {
+                    "candidate_records": 2,
+                    "topic_count": 2,
+                    "noise_records": 1,
+                    "silhouette_score": 0.2,
+                    "multi_source_hotspot_topic_ids": ["C1"],
+                },
+                "topics": [
+                    {
+                        "topic_id": "C1",
+                        "topic_name": "多源主题",
+                        "record_count": 2,
+                        "source_count": 2,
+                        "source_names": ["GitHub", "V2EX"],
+                        "dimension_scores": {"multi_source_direction": 100},
+                    },
+                    {
+                        "topic_id": "C2",
+                        "topic_name": "单源对照",
+                        "record_count": 1,
+                        "source_count": 1,
+                        "source_names": ["Hacker News"],
+                        "dimension_scores": {"multi_source_direction": 50},
+                    },
+                ],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    (formal / "scoring.json").write_text(
+        '{"scoring":{"weights":{"multi_source_direction":0.4}},"ranking":[{"topic_id":"C1","value_score":80,"priority":1},{"topic_id":"C2","value_score":40,"priority":2}]}',
+        encoding="utf-8",
+    )
+    proposal = tmp_path / "proposal"
+    proposal.mkdir()
+    (proposal / "C2_AI智能体证据工作台策划案_评审修订版_20261119.md").write_text(
+        "# 策划案", encoding="utf-8"
+    )
+    (proposal / "C2_AI智能体证据工作台策划案_评审修订版_20261119.docx").write_bytes(
+        b"docx"
+    )
+    client = TestClient(create_app(tmp_path))
+    page = client.get("/dashboard")
+    assert page.status_code == 200
+    assert "综合 AI 应用机会决策看板" in page.text
+    dashboard = client.get("/api/dashboard")
+    assert dashboard.status_code == 200
+    payload = dashboard.json()
+    assert payload["quality"]["multi_source_hotspot_topic_ids"] == ["C1"]
+    assert payload["topics"][0]["is_multi_source_hotspot"] is True
+    assert "rows" not in payload
+    assert client.get("/api/dashboard/proposal/markdown").status_code == 200
+    assert client.get("/api/dashboard/proposal/docx").status_code == 200
