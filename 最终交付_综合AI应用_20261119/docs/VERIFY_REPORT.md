@@ -62,7 +62,7 @@
 ## 当前文件
 
 - 编辑源：`paper/manuscript/main.tex`、`paper/manuscript/sections/`、`paper/manuscript/references.tex`
-- 当前 LaTeX PDF：`paper/论文_目录图表修订版_20261120.pdf`
+- 当前 LaTeX PDF：`paper/论文_摘要背景修订版_20261120.pdf`
 - 既有 Word 文件：`paper/论文_20261119.docx`，本次未修改
 - 历史导出：`paper/deliverables/` 中更早的修订版、终稿、交付版、探索修订版和校对版文件；保留为审阅过程产物，最终校验版为当前版本
 - 首次编译覆盖说明：`paper/manuscript/main.pdf` 曾被首次 Tectonic 命令覆盖，当前文件仍保留该版本；所有后续 PDF 均输出至新建临时目录，没有继续写入该路径
