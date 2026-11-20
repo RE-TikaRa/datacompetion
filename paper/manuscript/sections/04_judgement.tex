@@ -23,7 +23,7 @@
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.98\textwidth]{../figures/fig09_review_sample_composition.pdf}
-  \caption{509 条人工复核样本按来源网站和正文类型分组。颜色区分人工确认机会与人工确认非机会；样本构成为分层抽样结果。}
+  \caption[509 条复核样本构成]{509 条人工复核样本按来源网站和正文类型分组。颜色区分人工确认机会与人工确认非机会；样本构成为分层抽样结果。}
   \label{fig:review-composition}
 \end{figure}
 
@@ -33,7 +33,7 @@
 
 \begin{table}[H]
   \centering
-  \caption{模型标签之间的一致记录数}
+  \caption[复核队列中的模型标签一致记录数]{模型标签之间的一致记录数}
   \label{tab:review-agreement}
   \begin{tabular}{lrr}
     \toprule
@@ -56,7 +56,7 @@
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.82\textwidth]{../figures/fig04_label_shift.pdf}
-  \caption{原模型与全量人工确认结果中的机会判断规模。原模型有 269 条候选机会，全量人工确认结果有 100 条机会；标签登记来源见正文说明。}
+  \caption[原模型与全量确认结果的机会数量]{原模型与全量人工确认结果中的机会判断规模。原模型有 269 条候选机会，全量人工确认结果有 100 条机会；标签登记来源见正文说明。}
   \label{fig:labelshift}
 \end{figure}
 
@@ -71,7 +71,7 @@ E5 使用固定 revision 的 multilingual-e5-small，将输入截断至 512 个 
 \begin{table}[H]
   \centering
   \small
-  \caption{人工复核标签上的嵌套交叉验证比较}
+  \caption[人工复核标签上的嵌套交叉验证结果]{人工复核标签上的嵌套交叉验证比较}
   \label{tab:proxy-classifiers}
   \begin{tabular}{lrrr}
     \toprule
@@ -91,21 +91,21 @@ E5 使用固定 revision 的 multilingual-e5-small，将输入截断至 512 个 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.98\textwidth]{../figures/fig10_proxy_classifier_comparison.pdf}
-  \caption{509 条人工复核记录的重复五折外层交叉验证结果。点和误差线表示 10 个外层折的均值与标准差；红色虚线为复核样本机会比例。误差线不是置信区间。}
+  \caption[五种分类器的重复嵌套交叉验证指标]{509 条人工复核记录的重复五折外层交叉验证结果。点和误差线表示 10 个外层折的均值与标准差；红色虚线为复核样本机会比例。误差线不是置信区间。}
   \label{fig:proxy-comparison}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.98\textwidth]{../figures/fig11_proxy_classifier_oof.pdf}
-  \caption{外层折外平均概率的精确率—召回率曲线及混淆矩阵。图中参照标签来自人工复核；结果不外推到未复核记录。}
+  \caption[外层折预测的精确率—召回率曲线与混淆矩阵]{外层折外平均概率的精确率—召回率曲线及混淆矩阵。图中参照标签来自人工复核；结果不外推到未复核记录。}
   \label{fig:proxy-oof}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.98\textwidth]{../figures/fig16_classifier_family.pdf}
-  \caption{五种模型族在人工复核标签上的重复嵌套验证结果。误差线为外层折间标准差；E5-RBF-SVM 经外层训练集内的 sigmoid 校准。}
+  \caption[五种模型族在人工复核标签上的验证结果]{五种模型族在人工复核标签上的重复嵌套验证结果。误差线为外层折间标准差；E5-RBF-SVM 经外层训练集内的 sigmoid 校准。}
   \label{fig:classifier-family}
 \end{figure}
 
@@ -116,14 +116,14 @@ E5 使用固定 revision 的 multilingual-e5-small，将输入截断至 512 个 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.98\textwidth]{../figures/fig17_source_holdout.pdf}
-  \caption{留一来源验证的人工复核标签平均精确率。横轴同时列出留出来源的样本数和人工确认机会数；无正例来源不计算平均精确率。各来源正例数偏少，图中分数用于显示迁移差异。}
+  \caption[留一来源验证的平均精确率]{留一来源验证的人工复核标签平均精确率。横轴同时列出留出来源的样本数和人工确认机会数；无正例来源不计算平均精确率。各来源正例数偏少，图中分数用于显示迁移差异。}
   \label{fig:source-holdout}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.76\textwidth]{../figures/fig12_embedding_pca.pdf}
-  \caption{人工复核样本在冻结 E5 向量空间的 PCA 投影。符号区分被标记为边界的记录，颜色表示人工确认标签。}
+  \caption[冻结 E5 向量的 PCA 投影]{人工复核样本在冻结 E5 向量空间的 PCA 投影。符号区分被标记为边界的记录，颜色表示人工确认标签。}
   \label{fig:embedding-pca}
 \end{figure}
 

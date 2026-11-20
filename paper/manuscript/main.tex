@@ -1,10 +1,18 @@
 \documentclass[UTF8,a4paper,11pt,fontset=fandol]{ctexart}
 \usepackage[a4paper,top=2.3cm,bottom=2.3cm,left=2.5cm,right=2.5cm]{geometry}
-\usepackage{amsmath,amssymb,booktabs,graphicx,float,xcolor,array,enumitem,hyperref,xurl,listings,caption}
+\usepackage{amsmath,amssymb,booktabs,graphicx,float,xcolor,array,enumitem,hyperref,xurl,listings,caption,tocloft}
 \hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
 \setlength{\parindent}{2em}
 \linespread{1.40}
 \renewcommand{\arraystretch}{1.2}
+\renewcommand{\thefigure}{\chinese{figure}}
+\renewcommand{\thetable}{\chinese{table}}
+\renewcommand{\listfigurename}{图目录}
+\renewcommand{\listtablename}{表目录}
+\renewcommand{\cftfigpresnum}{图}
+\renewcommand{\cfttabpresnum}{表}
+\setlength{\cftfignumwidth}{3.2em}
+\setlength{\cfttabnumwidth}{3.2em}
 \setlist{nosep,leftmargin=2.5em}
 \captionsetup{font=small,labelfont=bf}
 \lstset{basicstyle=\ttfamily\small,breaklines=true,frame=single,columns=fullflexible}
@@ -16,10 +24,22 @@
 \maketitle
 
 \begin{abstract}
+\normalsize
 生成式人工智能应用快速扩展后，公开网络中同时存在用户需求、产品宣传、技术展示和内部开发记录。本文面向综合 AI 应用机会，构建从多源采集、清洗、机会判别、语义主题聚合、价值排序到决策支持的可追溯流程。本研究使用首个独立综合 AI 应用数据批次，覆盖 2026 年 8 月 10 日至 11 月 7 日的 90 日公开数据，从 GitHub、Hacker News、量子位、IT之家和 V2EX 获取记录，清洗后保留 2,561 条。系统以可观察需求、AI 核心性、技术可实现性和排除项组织机会判断，并将全量判断按用户授权登记为人工确认字段；其中 509 条材料完成逐条审阅，2,052 条采用已有 AI 判断转登记。原模型判定 269 条候选机会，人工确认结果有 100 条机会，169 条记录发生标签变化；240 条负例来自按来源、内容类型和低置信度定向抽取的复核队列。全量结果形成 14 个主题，其中 12 个为 HDBSCAN 噪声记录的单记录保留项，轮廓系数为 0.204。针对 509 条逐条审阅子集，本文以五折嵌套交叉验证比较 TF-IDF 逻辑回归和 ComplementNB、冻结多语言 E5 向量上的逻辑回归和 RBF-SVM，以及内层选择参数的多层感知机（MLP）。字符 TF-IDF 逻辑回归平均精确率最高，为 $0.488\pm0.077$；RBF-SVM 平衡准确率最高，为 $0.720\pm0.054$。留一来源验证显示来源间表现差异明显，且部分来源正例不足以稳定估计。分类结果用于检查逐条审阅标签的复现情况，不外推为独立真人真值下的模型性能。结果支持对系统链路、模型选择、时间新近性和来源迁移边界的应用分析，不把主题排序解释为已验证的市场规模。
 
 \noindent\textbf{关键词：} AI 应用机会；多源采集；语义聚类；人工复核；机器学习；来源迁移
 \end{abstract}
+\clearpage
+\begingroup
+\small
+\tableofcontents
+\endgroup
+\clearpage
+\addcontentsline{toc}{section}{图目录}
+\listoffigures
+\clearpage
+\addcontentsline{toc}{section}{表目录}
+\listoftables
 \clearpage
 
 \input{sections/01_introduction}
