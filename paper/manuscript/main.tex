@@ -1,12 +1,14 @@
 \documentclass[UTF8,a4paper,11pt,fontset=fandol]{ctexart}
 \usepackage[a4paper,top=2.3cm,bottom=2.3cm,left=2.5cm,right=2.5cm]{geometry}
-\usepackage{amsmath,amssymb,booktabs,graphicx,float,xcolor,array,enumitem,hyperref,xurl,listings,caption,tocloft,fancyhdr}
+\usepackage{amsmath,amssymb,booktabs,graphicx,float,xcolor,array,enumitem,xurl,listings,caption,tocloft,fancyhdr}
+\usepackage[numbers,square,super,sort&compress]{natbib}
+\usepackage{hyperref}
 \hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
 \setlength{\parindent}{2em}
 \linespread{1.40}
 \renewcommand{\arraystretch}{1.2}
-\renewcommand{\thefigure}{\chinese{figure}}
-\renewcommand{\thetable}{\chinese{table}}
+\renewcommand{\thefigure}{\arabic{figure}}
+\renewcommand{\thetable}{\arabic{table}}
 \renewcommand{\listfigurename}{图目录}
 \renewcommand{\listtablename}{表目录}
 \renewcommand{\cftfigpresnum}{图}
@@ -14,7 +16,7 @@
 \setlength{\cftfignumwidth}{3.2em}
 \setlength{\cfttabnumwidth}{3.2em}
 \setlist{nosep,leftmargin=2.5em}
-\captionsetup{font=small,labelfont=bf}
+\captionsetup{font=small,labelfont=bf,labelsep=space}
 \lstset{basicstyle=\ttfamily\small,breaklines=true,frame=single,columns=fullflexible}
 \pagestyle{fancy}
 \fancyhf{}
