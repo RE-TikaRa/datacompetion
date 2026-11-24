@@ -30,3 +30,11 @@ paper/deliverables/*修订版*
 paper/deliverables/*终稿*
 paper/deliverables/*交付版*
 paper/deliverables/~$*.docx
+
+# Local reference papers and generated delivery exports
+data/paper/
+submission/B01/
+最终交付_综合AI应用_20261120/
+最终交付_综合AI应用_20261120.zip
+最终交付_综合AI应用_20261119/paper/Tika.lnk
+最终交付_综合AI应用_20261119/最终交付_综合AI应用_20261119.zip

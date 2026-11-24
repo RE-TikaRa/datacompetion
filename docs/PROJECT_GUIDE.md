@@ -1,6 +1,6 @@
 # 项目细则与当前进度
 
-更新时间：2026-11-19。项目目录为 `C:/Users/Tika/Desktop/datacompetion`，分支为 `main`。本地提交状态和最新提交号请用 `git status --short --branch` 与 `git log -1 --oneline` 查看；改动只在本机，没有推送远程。
+更新时间：2026-11-25。项目目录为 `C:/Users/Tika/Desktop/datacompetion`，分支为 `main`。本地提交状态和最新提交号请用 `git status --short --branch` 与 `git log -1 --oneline` 查看；改动只在本机，没有推送远程。
 
 这份文档是项目导航和进度记录。README 负责快速入口，本文件负责说明目录职责、数据流、运行结果、验证方式、交付状态和剩余工作。`results/`、`data/raw/`、`data/processed/`、`data/models/` 等目录被 `.gitignore` 忽略，但它们仍然存在于本机，是当前研究结果的主要存储位置。
 
@@ -34,9 +34,9 @@
 | 全量人工 `result2` | 已生成 | 2,561 条均登记为人工字段，100 条机会 |
 | 正式 `result3`、`result4` | 已生成 | `results/B01/20261118T192102321700Z/result3.csv`、`result4.csv` |
 | 复核工作台与决策看板 | 已完成并验收 | FastAPI、本地页面、角色权限、标签校验、正式主题看板和策划案下载均已实现；截图位于最终交付目录 |
-| 论文 Word/PDF | 最终校验版已验收 | 增加分类器嵌套验证、来源留出、图表和文献；新旧版分别保存 |
+| 论文 Word/PDF | 全文编译版已验收 | 当前 LaTeX 主源完整编译为 29 页 A4，末页分页复查通过；Word 版本保留 |
 | 完整比赛提交包 | 已生成 | `submission/B01_全量提交_20261119.zip`；内部过程包保留在项目目录 |
-| 对外查看交付包 | 已生成并更新 | `最终交付_综合AI应用_20261119/` 与 `submission/综合AI应用_评审修订_20261119.zip`；含界面部署单元和两张验收截图 |
+| 对外查看交付包 | 已生成并更新 | `最终交付_综合AI应用_20261119/`，含全文 PDF、界面部署单元和两张验收截图；本机压缩包不纳入 Git |
 
 ### B01 关键数字
 
@@ -103,6 +103,7 @@
 | `data/reference/labels.json` | 从附件 1 导出的 16 个功能和 30 个行业 |
 | `data/reference/reference_sources.json` | 从附件 2 导出的 20 个网站 |
 | `data/reference/web_policies/` | robots、API、条款和入口页面的本地政策快照 |
+| `data/paper/` | 用户补充的论文参考资料，本机保留，不进入 Git |
 | `data/raw/B01/` | 采集配置、请求记录、响应字段和批次清单 |
 | `data/processed/B01/` | 采集阶段统一索引、CSV、JSONL 和正文索引 |
 | `data/models/multilingual-e5-small/` | multilingual-e5-small ONNX 权重和 tokenizer |
@@ -146,6 +147,7 @@
 | `paper/manuscript/main.tex` | 唯一论文主源文件 | 当前编辑源 |
 | `paper/manuscript/sections/` | 引言、方法、数据、判别、主题、案例、结论和复现说明 | 当前编辑源 |
 | `paper/manuscript/references.tex` | 24 条论文、API 和模型资料引用 | DOI、出版社记录和新增本地文献已核对 |
+| `最终交付_综合AI应用_20261119/paper/论文_全文编译版_20261120.pdf` | 当前全文编译 PDF | 29 页 A4，已完成分页复查 |
 | `paper/figures/` | 17 张论文图，含 PNG、PDF 和 SVG | 由本地结果及实验输出生成 |
 | `paper/EVIDENCE_LEDGER.md` | 正文主张、证据和限制 | 已完成 |
 | `paper/RESULTS_REPORT.md` | B01 论文结果总表 | 已完成 |
